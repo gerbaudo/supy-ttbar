@@ -1,8 +1,9 @@
-from core.wrappedChain import *
-import calculables,math,collections,bisect,itertools
-from core import utils
 
-class Indices(wrappedChain.calculable) :
+import supy
+import math,collections,bisect,itertools
+
+
+class Indices(supy.wrappedChain.calculable) :
     """
     This is a calculable to build the collection of jets that have
     some pt min and eta max. It can be used also for other
@@ -24,7 +25,7 @@ class Indices(wrappedChain.calculable) :
             if abs(etas.at(i))>self.etaMax: continue
             self.value.append(i)
 
-class P4(wrappedChain.calculable) :
+class P4(supy.wrappedChain.calculable) :
     """
     Calculable to build Lorentz vectors from the standard D3PD collections.
     """
@@ -32,12 +33,12 @@ class P4(wrappedChain.calculable) :
         self.fixes = collection
         self.stash(["pt", "eta", "phi", "m"])
     def update(self, _) :
-        self.value = [utils.LorentzV(pt, eta, phi, m) for pt,eta,phi,m in zip(self.source[self.pt],
-                                                                              self.source[self.eta],
-                                                                              self.source[self.phi],
-                                                                              self.source[self.m])]
+        self.value = [supy.utils.root.LorentzV(pt, eta, phi, m) for pt,eta,phi,m in zip(self.source[self.pt],
+                                                                                        self.source[self.eta],
+                                                                                        self.source[self.phi],
+                                                                                        self.source[self.m])]
 
-class M01(wrappedChain.calculable) :
+class M01(supy.wrappedChain.calculable) :
     """
     Calculable to compute the invariant mass of the first two objects
     in a collection.
