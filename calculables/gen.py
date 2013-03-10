@@ -1,6 +1,13 @@
 from supy import wrappedChain,utils,calculables
 import ROOT as r
 
+# list of leaf names
+# ['mc_channel_number', 'mc_event_number', 'mc_event_weight', 'mc_n',
+# 'mc_pt', 'mc_m', 'mc_eta', 'mc_phi', 'mc_status', 'mc_barcode',
+# 'mc_pdgId', 'mc_charge', 'mc_parents', 'mc_children', 'mc_vx_x',
+# 'mc_vx_y', 'mc_vx_z', 'mc_vx_barcode', 'mc_child_index',
+# 'mc_parent_index']
+#
 #___________________________________________________________
 class genP4(wrappedChain.calculable) :
     @property
@@ -38,13 +45,15 @@ class genIndices(wrappedChain.calculable) :
         parents = self.source['mc_parent_index']
         parentsPdgs = [[pdg[p] for p in par] for par in parents]
         parentsIndices = self.source[self.parentIndexLabel] if self.parentIndexLabel else []
-
+        print 'trying to update genIndices ',self.label
+        print 'input : %d elem'%len(pdg)
         self.value = filter( lambda i: ( (not self.PDGs) or (pdg.at(i) in self.PDGs) ) and \
                                  ( (not self.status) or (status.at(i) in self.status) ) and \
                                  ( (not self.parentPdgs) or any(p in self.parentPdgs for p in parentsPdgs[i])) and \
                                  ( (not self.parentIndexLabel) or any(p in parents[i] for p in parentsIndices))
                                  ,
                              range(pdg.size()) )
+        print "found %d"%len(self.value)
         if self.maxLen : self.value = self.value[:self.maxLen] # trim if needed
 #___________________________________________________________
 class smTopIndex(wrappedChain.calculable) :
@@ -66,3 +75,53 @@ class genIndicesWqq(wrappedChain.calculable) :
         ids = self.source['genPdgId']
         mom = self.source['genMotherPdgId']
         self.value = filter(lambda i: abs(mom[i]) is 24 and abs(ids[i]) < 5, range(len(ids)))
+
+class sherpaTtbarProductsIndices(wrappedChain.calculable) :
+    """ The MC record for a ttbar generated with sherpa looks like
+    this, with all the decay products coming from two gluons.All the
+    interesting particles have status 3, all the other ones have 11
+    (mostly).
+                 t -> lpos v b, t_ -> lneg b_ v_
+
+    --------------------------------------
+    i    st   par         id          name
+    --------------------------------------
+    21   3 [...]            21         g
+    22   3 [...]            21         g
+    23   3 [21, 22]         12        ve
+    24   3 [21, 22]        -11        e+
+    25   3 [21, 22]          5         b
+    26   3 [21, 22]         11        e-
+    27   3 [21, 22]        -12        ve
+    28   3 [21, 22]         -5        /b
+    """
+    def update(self,_) :
+        pdg = self.source['mc_pdgId']
+        status = self.source['mc_status']
+        parents = self.source['mc_parent_index']
+        self.value = filter( lambda i: status[i]==3 and len(parents[i])==2, range(pdg.size()) )
+        #pdg = self.source['mc_pdgId']
+        #parents = self.source['mc_parent_index']
+        #parentsPdgs = [[pdg[p] for p in par] for par in parents]
+        #parentsIndices = self.source[self.parentIndexLabel] if self.parentIndexLabel else []
+
+class genIndicesSherpa(wrappedChain.calculable) :
+    def __init__(self, pdgs = []) :
+        self.pdgs = pdgs
+    def update(self,_) :
+        pdg = self.source['mc_pdgId']
+        sherpaIndices = self.source['sherpaTtbarProductsIndices']
+        self.value = filter( lambda i: pdg[i] in self.pdgs, sherpaIndices )
+
+class genIndiceslpos(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([-11, -13])
+class genIndiceslneg(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([+11, +13])
+class genIndicesb(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([+5])
+class genIndicesbbar(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([-5])
+class genIndicesv(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([+12,+14])
+class genIndicesvbar(genIndicesSherpa) :
+    def __init__(self) : self.pdgs = frozenset([-12,-14])
