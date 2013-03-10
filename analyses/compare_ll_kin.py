@@ -58,7 +58,7 @@ class compare_ll_kin(supy.analysis) :
     def conclude(self,pars) :
         #make a pdf file with plots from the histograms created above
         org = self.organizer(pars)
-        org.scale()
+        org.scale(lumiToUseInAbsenceOfData=20.0)
         supy.plotter( org,
                       pdfFileName = self.pdfFileName(org.tag),
                       #samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
