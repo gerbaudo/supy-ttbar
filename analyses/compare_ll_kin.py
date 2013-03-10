@@ -15,24 +15,30 @@ class compare_ll_kin(supy.analysis) :
         
         outList=[
             supy.steps.printer.progressPrinter(),
-            supy.steps.histos.multiplicity(var = "jet_pt", max = 20), 
-            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20), 
-            supy.steps.filters.multiplicity(min = 4, var = "jet_Indices"),
-            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
-            supy.steps.histos.eta(var = "jet_P4", N = 20, low = -2., up = +2., indices = "jet_Indices"),
-            supy.steps.histos.value(var = "jet_M01" , N = 50, low = 0., up = 1.0e+3*GeV),
-            supy.steps.filters.value(var = "jet_M01", min = 1.0*TeV),
-            supy.steps.other.skimmer()
+#            supy.steps.histos.multiplicity(var = "jet_pt", max = 20), 
+#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20), 
+#            supy.steps.filters.multiplicity(min = 4, var = "jet_Indices"),
+#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
+#            supy.steps.histos.eta(var = "jet_P4", N = 20, low = -2., up = +2., indices = "jet_Indices"),
+#            supy.steps.histos.value(var = "jet_M01" , N = 50, low = 0., up = 1.0e+3*GeV),
+#            supy.steps.filters.value(var = "jet_M01", min = 1.0*TeV),
+#            supy.steps.other.skimmer()
             ]
         return outList
     
     def listOfCalculables(self,config) :
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
-        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
-                                                         ptMin=30.*GeV,
-                                                         etaMax=1.5),
-                              calculables.Davide.P4(collection = ("jet_",""))]
-        listOfCalculables += [calculables.Davide.M01(collection = ("jet_",""))]
+        listOfCalculables += [calculables.gen.genP4(),
+                              calculables.gen.genIndices([-6,+6],'ttbar'),
+                              calculables.gen.genIndices([6],'t'),
+                              calculables.gen.genIndices([-6],'tbar'),
+                              ]
+
+#        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
+#                                                         ptMin=30.*GeV,
+#                                                         etaMax=1.5),
+#                              calculables.Davide.P4(collection = ("jet_",""))]
+#        listOfCalculables += [calculables.Davide.M01(collection = ("jet_",""))]
         return listOfCalculables
 
     def listOfSampleDictionaries(self) :
