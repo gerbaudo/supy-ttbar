@@ -3,6 +3,7 @@
 import supy
 import calculables,steps,samples, ROOT as r
 
+MeV2GeV = 1.0e+3
 GeV=1.0e+3
 TeV=1.0e+3*GeV
 
@@ -12,9 +13,23 @@ class compare_ll_kin(supy.analysis) :
                 }
 
     def listOfSteps(self,config) :
-        
-        outList=[
+        indices = ['genIndices'+p for p in ['lpos','lneg', 'b', 'bbar', 'v', 'vbar']]
+        def dropInd(idxName) :
+            return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
+        stepsList = [
             supy.steps.printer.progressPrinter(),
+            # sometimes multiple b or bbar?
+            supy.steps.filters.multiplicity('genIndicesb',max=1),
+            supy.steps.filters.multiplicity('genIndicesbbar',max=1),
+            #steps.gen.particlePrinter(),
+            supy.steps.histos.multiplicity("genP4", max=50),
+            ]
+        stepsList += [
+            supy.steps.histos.multiplicity(ii, max=4) for ii in indices]
+        stepsList+=[supy.steps.histos.pt("genP4",
+                                         20, 0.0, 300*GeV,
+                                         indices = ii, index = 0, xtitle = dropInd(ii))
+                    for ii in indices]
 #            supy.steps.histos.multiplicity(var = "jet_pt", max = 20), 
 #            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20), 
 #            supy.steps.filters.multiplicity(min = 4, var = "jet_Indices"),
@@ -23,16 +38,16 @@ class compare_ll_kin(supy.analysis) :
 #            supy.steps.histos.value(var = "jet_M01" , N = 50, low = 0., up = 1.0e+3*GeV),
 #            supy.steps.filters.value(var = "jet_M01", min = 1.0*TeV),
 #            supy.steps.other.skimmer()
-            ]
-        return outList
+        return stepsList
     
     def listOfCalculables(self,config) :
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genP4(),
-                              calculables.gen.genIndices([-6,+6],'ttbar'),
-                              calculables.gen.genIndices([6],'t'),
-                              calculables.gen.genIndices([-6],'tbar'),
-                              ]
+                              calculables.gen.sherpaTtbarProductsIndices(),
+                              calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
+                              calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
+                              calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
+                             ]
 
 #        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
 #                                                         ptMin=30.*GeV,
@@ -52,7 +67,11 @@ class compare_ll_kin(supy.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet, effectiveLumi = 10.0e+3)
+        test = True
+        nEventsMax= 100 if test else None
+        print 'nEventsMax :',nEventsMax
+        return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet,# effectiveLumi = 10.0, 
+                                     nEventsMax=nEventsMax)
                 )
 
     def conclude(self,pars) :
