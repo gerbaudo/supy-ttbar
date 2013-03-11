@@ -2,7 +2,7 @@ from supy import wrappedChain,utils,calculables
 import ROOT as r
 ##############################
 class Indices(wrappedChain.calculable) :
-    def __init__(self, collection = None, ptMin = None, isoMax = None, isoVar='ptcone30', isoType='relative'absEtaMax = 1000) :
+    def __init__(self, collection = None, ptMin = None, isoMax = None, isoVar='ptcone30', isoType='relative', absEtaMax = 1000) :
         self.fixes = collection
         self.stash(["charge","author",isoVar,"loose","P4","cb_d0_exPV","cb_z0_exPV"])
         self.ptMin = ptMin
