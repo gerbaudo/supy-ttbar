@@ -9,7 +9,20 @@ TeV=1.0e+3*GeV
 
 class compare_ll_kin(supy.analysis) :
     def parameters(self) :
-        return {"minJetPt" : 10.0,
+        objects = self.vary()
+        leptons = self.vary()
+        fields = [ "jet", "met", "muon", "electron",]
+        objects['std'] =  dict(zip(fields, [("jet_AntiKt4LCTopo_",""),
+                                            "MET_RefFinal_STVF_",
+                                            ("mu_staco_",""),
+                                            ("el_","")]))
+
+        fieldsLepton =                           ['name', 'ptMin', 'etaMax',   'isoVar', 'isoType']
+        leptons['muon'] = dict(zip(fieldsLepton, ['muon',      10,      2.4, 'ptcone30', 'relative']))
+        return {
+            'objects'  : objects,
+            'lepton'   : leptons,
+            'minJetPt' : 10.0,
                 }
 
     def listOfSteps(self,config) :
@@ -30,8 +43,8 @@ class compare_ll_kin(supy.analysis) :
                                          20, 0.0, 300*GeV,
                                          indices = ii, index = 0, xtitle = dropInd(ii))
                     for ii in indices]
-#            supy.steps.histos.multiplicity(var = "jet_pt", max = 20), 
-#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20), 
+#            supy.steps.histos.multiplicity(var = "jet_pt", max = 20),
+#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
 #            supy.steps.filters.multiplicity(min = 4, var = "jet_Indices"),
 #            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
 #            supy.steps.histos.eta(var = "jet_P4", N = 20, low = -2., up = +2., indices = "jet_Indices"),
@@ -39,14 +52,18 @@ class compare_ll_kin(supy.analysis) :
 #            supy.steps.filters.value(var = "jet_M01", min = 1.0*TeV),
 #            supy.steps.other.skimmer()
         return stepsList
-    
+
     def listOfCalculables(self,config) :
+        print config
+        obj = config["objects"]
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genP4(),
                               calculables.gen.sherpaTtbarProductsIndices(),
                               calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
                               calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
                               calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
+                              ]
+        listOfCalculables += [supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
                              ]
 
 #        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
@@ -70,7 +87,7 @@ class compare_ll_kin(supy.analysis) :
         test = True
         nEventsMax= 100 if test else None
         print 'nEventsMax :',nEventsMax
-        return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet,# effectiveLumi = 10.0, 
+        return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet,# effectiveLumi = 10.0,
                                      nEventsMax=nEventsMax)
                 )
 
