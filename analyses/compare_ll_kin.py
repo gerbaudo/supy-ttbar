@@ -78,7 +78,7 @@ class compare_ll_kin(supy.analysis) :
         basedir="/pnfs-disk/pic.es/at3/projects/TOPD3PD/2011/Skimming/DPD_prod01_02_October11"
         exampleDict = supy.samples.SampleHolder()
         exampleDict.add("ttbar_sherpa",
-                        '["/tmp/gerbaudo/data/NTUP_SUSY.01116143._000136.root.1"]',
+                        '["/afs/cern.ch/user/g/gerbaudo/public/tmp/ttbar_sherpa_dilepton.root"]',
                         xs = 89.3615) #pb
         print "Fix cross sections"
         return [exampleDict]
