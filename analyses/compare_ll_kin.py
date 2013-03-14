@@ -7,6 +7,7 @@ MeV2GeV = 1.0e+3
 GeV=1.0e+3
 TeV=1.0e+3*GeV
 
+
 class compare_ll_kin(supy.analysis) :
     def parameters(self) :
         objects = self.vary()
@@ -26,6 +27,9 @@ class compare_ll_kin(supy.analysis) :
                 }
 
     def listOfSteps(self,config) :
+        obj = config["objects"]
+        lepton = obj['muon']
+        print lepton
         indices = ['genIndices'+p for p in ['lpos','lneg', 'b', 'bbar', 'v', 'vbar']]
         def dropInd(idxName) :
             return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
@@ -43,14 +47,11 @@ class compare_ll_kin(supy.analysis) :
                                          20, 0.0, 300*GeV,
                                          indices = ii, index = 0, xtitle = dropInd(ii))
                     for ii in indices]
-#            supy.steps.histos.multiplicity(var = "jet_pt", max = 20),
-#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
-#            supy.steps.filters.multiplicity(min = 4, var = "jet_Indices"),
-#            supy.steps.histos.multiplicity(var = "jet_Indices", max = 20),
-#            supy.steps.histos.eta(var = "jet_P4", N = 20, low = -2., up = +2., indices = "jet_Indices"),
-#            supy.steps.histos.value(var = "jet_M01" , N = 50, low = 0., up = 1.0e+3*GeV),
-#            supy.steps.filters.value(var = "jet_M01", min = 1.0*TeV),
-#            supy.steps.other.skimmer()
+        print 'lepton -> '
+        print lepton
+        print '-->'
+        stepsList+= [supy.steps.histos.value("%sRelativeIso%s"%lepton, 50, 0.0, 1.0,
+                                             indices='Indices'.join(lepton))]
         return stepsList
 
     def listOfCalculables(self,config) :
@@ -62,15 +63,10 @@ class compare_ll_kin(supy.analysis) :
                               calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
                               calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
                               calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
+                              calculables.muon.Indices(obj['muon'], ptMin=10.)
                               ]
-        listOfCalculables += [supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
-                             ]
+        listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
 
-#        listOfCalculables += [calculables.Davide.Indices(collection = ("jet_",""), # prefix,suffix
-#                                                         ptMin=30.*GeV,
-#                                                         etaMax=1.5),
-#                              calculables.Davide.P4(collection = ("jet_",""))]
-#        listOfCalculables += [calculables.Davide.M01(collection = ("jet_",""))]
         return listOfCalculables
 
     def listOfSampleDictionaries(self) :
@@ -78,7 +74,8 @@ class compare_ll_kin(supy.analysis) :
         basedir="/pnfs-disk/pic.es/at3/projects/TOPD3PD/2011/Skimming/DPD_prod01_02_October11"
         exampleDict = supy.samples.SampleHolder()
         exampleDict.add("ttbar_sherpa",
-                        '["/tmp/gerbaudo/data/NTUP_SUSY.01116143._000136.root.1"]',
+                        '["/tmp/gerbaudo/data/foo.root"]',
+#                        '["/tmp/gerbaudo/data/NTUP_SUSY.01116143._000136.root.1"]',
                         xs = 89.3615) #pb
         print "Fix cross sections"
         return [exampleDict]
