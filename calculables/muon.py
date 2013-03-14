@@ -1,32 +1,67 @@
 from supy import wrappedChain,utils,calculables
 import ROOT as r
-##############################
-class Indices(wrappedChain.calculable) :
-    def __init__(self, collection = None, ptMin = None, isoMax = None, isoVar='ptcone30', isoType='relative', absEtaMax = 1000) :
+#_____________________________
+class P4(wrappedChain.calculable) :
+    def __init__(self, collection = None) :
         self.fixes = collection
-        self.stash(["charge","author",isoVar,"loose","P4","cb_d0_exPV","cb_z0_exPV"])
+        self.stash(['pt','eta','phi','m',])
+    @property
+    def name(self) : return "P4".join(self.fixes)
+    def update(self,ignored) :
+        pts = self.source[self.pt]
+        etas = self.source[self.eta]
+        phis = self.source[self.phi]
+        ms = self.source[self.m]
+        self.value = [utils.LorentzV(P,e,p,m) for P,e,p,m in zip(pts, etas, phis, ms)]
+    
+
+#_____________________________
+class Indices(wrappedChain.calculable) :
+    def __init__(self, collection = None, ptMin = None, iso = 'RelativeIso', absEtaMax = 1000) :
+        self.fixes = collection
+        self.stash(["charge","author", "loose","P4","cb_d0_exPV","cb_z0_exPV"])
         self.ptMin = ptMin
         self.absEtaMax = absEtaMax
-        self.isoVar = isoVar
-        self.isoMax = isoMax
-        self.isoType = isoType
-        self.isoRel = isoType=='relative'
-        iso = isoVar + ('/pt' if self.isoRel else '')
-        self.moreName = "muon pt>%.1f GeV; %s<%.2f"%(ptMin, iso, isoMax )
+        self.iso = iso.join(collection)
+        self.moreName = "muon "\
+            +("pt>%.1f GeV;"%ptMin if ptMin else "")\
+            +(";|eta|<%.1f"%absEtaMax if absEtaMax<1000 else "")\
+            + iso
+        print self.name
 
     def update(self,ignored) :
         self.value = []        
         p4s    = self.source[self.P4]
-        isoVars = self.source[self.isoVar]
-        iso = self.isoMax
-        isoRel = self.isoRel
-        isoMax = self.isoMax
+        isoVars = self.source[self.iso]
+        print 'isoVars -->',isoVars
+        print 'p4s : ',p4s
+
         for i in range(p4s.size()) :
             p4 = p4s.at(i)
             isoVar = isoVars[i]
             if p4.pt() < self.ptMin : continue
             if self.absEtaMax < abs(p4.eta()) : continue
-            if isoMax and ((isoVar/p4.pt()) > isoMax if isoRel else isoVar > isoMax) : continue
+            if not isoVar[i] : continue
             self.value.append(i)
             # todo: implement dist pv etc.
-##############################
+#_____________________________
+class RelativeIso(wrappedChain.calculable) :
+    def __init__(self, collection = None, isoMax = None, isoVar = None) :
+        self.isoVar = isoVar
+        self.isoMax = isoMax
+        self.fixes = collection
+        self.stash(['pt', 'ptcone20', 'ptcone30', 'ptcone40'])
+    @property
+    def name(self) : return "RelativeIso".join(self.fixes)
+    def update(self,ignored) :
+        pts = self.source[self.pt]
+        isoMax = self.isoMax
+        isoVals = self.source[eval('self.'+self.isoVar)]
+        print 'isoVals: ',isoVals
+        self.value = [v/p < isoMax if p else None for v,p in zip(isoVals,pts)]
+
+class RelativeIso02PtCone30(RelativeIso) :
+    def __init__(self,collection) :
+        super(RelativeIso02PtCone30,self).__init__(collection,0.2,'ptcone30')
+        print 'rname ',self.name
+        
