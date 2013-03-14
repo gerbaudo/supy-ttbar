@@ -75,7 +75,6 @@ class compare_ll_kin(supy.analysis) :
         exampleDict = supy.samples.SampleHolder()
         exampleDict.add("ttbar_sherpa",
                         '["/tmp/gerbaudo/data/foo.root"]',
-#                        '["/tmp/gerbaudo/data/NTUP_SUSY.01116143._000136.root.1"]',
                         xs = 89.3615) #pb
         print "Fix cross sections"
         return [exampleDict]
