@@ -27,21 +27,15 @@ class Indices(wrappedChain.calculable) :
             +("pt>%.1f GeV;"%ptMin if ptMin else "")\
             +(";|eta|<%.1f"%absEtaMax if absEtaMax<1000 else "")\
             + iso
-        print self.name
 
     def update(self,ignored) :
         self.value = []        
         p4s    = self.source[self.P4]
-        isoVars = self.source[self.iso]
-        print 'isoVars -->',isoVars
-        print 'p4s : ',p4s
-
-        for i in range(p4s.size()) :
-            p4 = p4s.at(i)
-            isoVar = isoVars[i]
-            if p4.pt() < self.ptMin : continue
-            if self.absEtaMax < abs(p4.eta()) : continue
-            if not isoVar[i] : continue
+        isoVars = self.source[self.iso] if self.iso else None
+        for i, p4 in enumerate(p4s) :
+            if self.ptMin and p4.pt() < self.ptMin : continue
+            if self.absEtaMax and self.absEtaMax < abs(p4.eta()) : continue
+            if self.iso and not isoVars[i] : continue # should iso be a bool or a float (and the thres here)?
             self.value.append(i)
             # todo: implement dist pv etc.
 #_____________________________
@@ -57,11 +51,9 @@ class RelativeIso(wrappedChain.calculable) :
         pts = self.source[self.pt]
         isoMax = self.isoMax
         isoVals = self.source[eval('self.'+self.isoVar)]
-        print 'isoVals: ',isoVals
         self.value = [v/p < isoMax if p else None for v,p in zip(isoVals,pts)]
 
 class RelativeIso02PtCone30(RelativeIso) :
     def __init__(self,collection) :
         super(RelativeIso02PtCone30,self).__init__(collection,0.2,'ptcone30')
-        print 'rname ',self.name
         
