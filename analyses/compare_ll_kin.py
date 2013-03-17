@@ -47,11 +47,12 @@ class compare_ll_kin(supy.analysis) :
                                          20, 0.0, 300*GeV,
                                          indices = ii, index = 0, xtitle = dropInd(ii))
                     for ii in indices]
-        print 'lepton -> '
-        print lepton
-        print '-->'
-        stepsList+= [supy.steps.histos.value("%sRelativeIso%s"%lepton, 50, 0.0, 1.0,
-                                             indices='Indices'.join(lepton))]
+        shv = supy.steps.histos.value
+        isoVar = "%sRelativeIso%s"%lepton
+        lepInd = 'mu_staco_Indices'
+        # stepsList += [supy.steps.printer.printstuff(["%sRelativeIso%s"%lepton])]
+        stepsList+= [shv(isoVar, 50, 0.0, 1.0, indices = lepInd, index=0),]
+
         return stepsList
 
     def listOfCalculables(self,config) :
