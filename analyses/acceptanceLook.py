@@ -74,13 +74,14 @@ class acceptanceLook(supy.analysis) :
         exampleDict = supy.samples.SampleHolder()
         # one file from mc12_8TeV.176584*_p1328/
         exampleDict.add("ttbar_sherpa",
-                        '["/tmp/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000001.root.1"]',
+                        '["/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000001.root.1"'
+                        ',"/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000002.root.1"]',
                         xs = 1.140) #pb # 1.1402753294*0.30636*0.3348500000
         print "Fix cross sections"
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        test = True
+        test = False #True
         nEventsMax= 100 if test else None
         print 'nEventsMax :',nEventsMax
         return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet,# effectiveLumi = 10.0,
