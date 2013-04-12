@@ -20,10 +20,11 @@ class acceptanceLook(supy.analysis) :
 
         fieldsLepton =                           ['name', 'ptMin', 'etaMax',   'isoVar', 'isoType']
         leptons['muon'] = dict(zip(fieldsLepton, ['muon',      10,      2.4, 'ptcone30', 'relative']))
+        jetPars = {'maxEta' : 2.5, 'minPt' : 20.0}
         return {
             'objects'  : objects,
             'lepton'   : leptons,
-            'minJetPt' : 10.0,
+            'jetPars'  : jetPars
                 }
 
     def listOfSteps(self,config) :
@@ -40,6 +41,7 @@ class acceptanceLook(supy.analysis) :
             supy.steps.filters.multiplicity('genIndicesbbar',max=1),
             #steps.gen.particlePrinter(),
             supy.steps.histos.multiplicity("genP4", max=50),
+            supy.steps.histos.multiplicity('genJetIndices', max=50),
             ]
         stepsList += [
             supy.steps.histos.multiplicity(ii, max=4) for ii in indices]
@@ -56,15 +58,19 @@ class acceptanceLook(supy.analysis) :
         return stepsList
 
     def listOfCalculables(self,config) :
-        print config
-        obj = config["objects"]
+        obj = config['objects']
+        lepton = config['lepton']
+        ptMin, etaMax = lepton['ptMin'], lepton['etaMax']
+        jetPars = config['jetPars']
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genP4(),
                               calculables.gen.sherpaTtbarProductsIndices(),
                               calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
                               calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
                               calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
-                              calculables.muon.Indices(obj['muon'], ptMin=10.)
+                              calculables.muon.Indices(obj['muon'], ptMin=ptMin),
+                              calculables.genjet.genJetP4(),
+                              calculables.genjet.genJetIndices(ptMin=jetPars['minPt'], etaMax=jetPars['maxEta']),
                               ]
         listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
 
@@ -79,7 +85,7 @@ class acceptanceLook(supy.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        test = False #True
+        test = True #False
         nEventsMax= 100 if test else None
         return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
                 )
