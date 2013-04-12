@@ -1,12 +1,7 @@
 from supy import wrappedChain,utils
-#import ROOT as r
-
-
-
-class genJetP4(wrappedChain.calculable) :
-    @property
-    def name(self) : return "genP4"
-    def __init__(self, collection=('mc_','')):
+#___________________________________________________________
+class P4(wrappedChain.calculable) :
+    def __init__(self, collection=('jet_AntiKt4TruthJets_','')):
         self.p4=utils.LorentzV
         self.fixes = collection
         self.stash(["E", "pt", "eta", "phi", "m"])
@@ -15,20 +10,23 @@ class genJetP4(wrappedChain.calculable) :
                                                                        self.source[self.eta],
                                                                        self.source[self.phi],
                                                                        self.source[self.m])]
-
-    # nTruthJets = tree.jet_AntiKt4TruthJets_n
-    # truthJets = [tlv(0., 0., 0., 0.) for i in xrange(nTruthJets)]
-    # pdg, parents, children = tree.mc_pdgId, tree.mc_parent_index, tree.mc_child_index
-    # interestingIhiggs, higgsChildren, higgsParents = findHiggs(pdg, parents, children)
-    # if len(interestingIhiggs)>1 :
-    #     print "skip event with multiple (%d) higgs"%len(interestingIhiggs)
-    #     continue
-    # higgsChildren, higgsParents = higgsChildren[0], higgsParents[0]
-    # hDecay = gen.guessHdecayLabel(higgsChildren)
-    # for j, pt, eta, phi, en in zip(truthJets,
-    #                                tree.jet_AntiKt4TruthJets_pt,
-    #                                tree.jet_AntiKt4TruthJets_eta,
-    #                                tree.jet_AntiKt4TruthJets_phi,
-    #                                tree.jet_AntiKt4TruthJets_E) :
-    #     j.SetPtEtaPhiE(pt*MeV2GeV, eta, phi, en*MeV2GeV)
-    # truthJets = [j for j in truthJets if j.Pt()>minJetPt]
+class genJetP4(P4) :
+    @property
+    def name(self) : return 'genJetP4'
+#___________________________________________________________
+class Indices(wrappedChain.calculable) :
+    def __init__(self, ptMin = None, etaMax = None) :
+        self.ptMin = ptMin
+        self.etaMax = etaMax
+        self.moreName = ';'.join(filter(lambda x:x,
+                                        ("pT>%g GeV"%ptMin if ptMin else '',
+                                         "|eta|<%g"%etaMax if etaMax else '')))
+    def update(self, _) :
+        p4s = self.source['genJetP4']
+        self.value = [i for i,j in enumerate(p4s)
+                      if  ((not self.ptMin)  or j.pt() > self.ptMin) \
+                      and ((not self.etaMax) or abs(j.eta()) < self.etaMax)]
+class genJetIndices(Indices) :
+    @property
+    def name(self) : return 'genJetIndices'
+#___________________________________________________________
