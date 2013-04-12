@@ -72,28 +72,21 @@ class acceptanceLook(supy.analysis) :
 
     def listOfSampleDictionaries(self) :
         exampleDict = supy.samples.SampleHolder()
-        # one file from mc12_8TeV.176584*_p1328/
-        exampleDict.add("ttbar_sherpa",
+        exampleDict.add('WH_2Lep_11',
                         '["/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000001.root.1"'
                         ',"/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000002.root.1"]',
                         xs = 1.140) #pb # 1.1402753294*0.30636*0.3348500000
-        print "Fix cross sections"
         return [exampleDict]
 
     def listOfSamples(self,config) :
         test = False #True
         nEventsMax= 100 if test else None
-        print 'nEventsMax :',nEventsMax
-        return (supy.samples.specify(names = "ttbar_sherpa", color = r.kViolet,# effectiveLumi = 10.0,
-                                     nEventsMax=nEventsMax)
+        return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
                 )
 
     def conclude(self,pars) :
-        #make a pdf file with plots from the histograms created above
         org = self.organizer(pars)
         org.scale(lumiToUseInAbsenceOfData=20.0)
         supy.plotter( org,
                       pdfFileName = self.pdfFileName(org.tag),
-                      #samplesForRatios = ("Example_Skimmed_900_GeV_Data","Example_Skimmed_900_GeV_MC"),
-                      #sampleLabelsForRatios = ("data","sim"),
                       ).plotAll()
