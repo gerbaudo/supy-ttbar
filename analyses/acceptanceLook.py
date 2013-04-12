@@ -36,9 +36,6 @@ class acceptanceLook(supy.analysis) :
             return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
         stepsList = [
             supy.steps.printer.progressPrinter(),
-            # sometimes multiple b or bbar?
-            supy.steps.filters.multiplicity('genIndicesb',max=1),
-            supy.steps.filters.multiplicity('genIndicesbbar',max=1),
             #steps.gen.particlePrinter(),
             supy.steps.histos.multiplicity("genP4", max=50),
             supy.steps.histos.multiplicity('genJetIndices', max=50),
@@ -64,10 +61,6 @@ class acceptanceLook(supy.analysis) :
         jetPars = config['jetPars']
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genP4(),
-                              calculables.gen.sherpaTtbarProductsIndices(),
-                              calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
-                              calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
-                              calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
                               calculables.muon.Indices(obj['muon'], ptMin=ptMin),
                               calculables.genjet.genJetP4(),
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'], etaMax=jetPars['maxEta']),
