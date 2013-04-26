@@ -63,20 +63,24 @@ class genIndices(wrappedChain.calculable) :
         if self.maxLen : self.value = self.value[:self.maxLen] # trim if needed
 #___________________________________________________________
 class smTopIndex(wrappedChain.calculable) :
-    def __init__(self) :
+    def __init__(self, collection=defaultColl):
+        self.fixes = collection
+        self.stash(['pdgId', 'child_index'])
         self.PDGs = frozenset([-6,+6])
         self.childrenPdgs = frozenset([-5,5,-24,24])
         self.moreName = "; ".join(["pdgId in %s" %str(list(self.PDGs)),
                                    "childrenPdgs in %s"%str(list(self.childrenPdgs))])
     def update(self,_) :
-        pdg = self.source['mc_pdgId']
-        childrenIndices = self.source['mc_child_index']
+        pdg = self.source[self.pdgId]
+        childrenIndices = self.source[self.child_index]
         childrenPdgs = [[pdg[c] for c in chi] for chi in childrenIndices]
         self.value = filter( lambda i: ( (not self.PDGs) or (pdg.at(i) in self.PDGs) ) and \
                                  ( (not self.childrenPdgs) or frozenset(childrenPdgs[i]).issubset(self.childrenPdgs)),
                              range(pdg.size()) )
 #___________________________________________________________
 class genIndicesWqq(wrappedChain.calculable) :
+    def __init__(self, collection=defaultColl):
+        self.fixes = collection
     def update(self,_) :
         ids = self.source['genPdgId']
         mom = self.source['genMotherPdgId']
@@ -115,22 +119,25 @@ class sherpaTtbarProductsIndices(wrappedChain.calculable) :
         #parentsIndices = self.source[self.parentIndexLabel] if self.parentIndexLabel else []
 
 class genIndicesSherpa(wrappedChain.calculable) :
-    def __init__(self, pdgs = []) :
-        self.pdgs = pdgs
+    def __init__(self, collection=defaultColl, pdgs=[]) :
+        self.fixes = collection
+        self.stash(['pdgId', 'sherpaTtbarProductsIndices'])
+        self.pdgs = frozenset(pdgs)
     def update(self,_) :
-        pdg = self.source['mc_pdgId']
-        sherpaIndices = self.source['sherpaTtbarProductsIndices']
+        pdg = self.source[self.pdgId]
+        sherpaIndices = self.source[self.sherpaTtbarProductsIndices]
         self.value = filter( lambda i: pdg[i] in self.pdgs, sherpaIndices )
 
 class genIndiceslpos(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([-11, -13])
+    def __init__(self, collection) : super(genIndiceslpos, self).__init__(collection, [-11, -13])
 class genIndiceslneg(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([+11, +13])
+    def __init__(self, collection) : super(genIndiceslneg, self).__init__(collection, [+11, +13])
 class genIndicesb(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([+5])
+    def __init__(self, collection) : super(genIndicesb,    self).__init__(collection, [+5])
 class genIndicesbbar(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([-5])
+    def __init__(self, collection) : super(genIndicesbbar, self).__init__(collection, [-5])
 class genIndicesv(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([+12,+14])
+    def __init__(self, collection) : super(genIndicesv,    self).__init__(collection, [+12,+14])
 class genIndicesvbar(genIndicesSherpa) :
-    def __init__(self) : self.pdgs = frozenset([-12,-14])
+    def __init__(self, collection) : super(genIndicesvbar, self).__init__(collection, [-12,-14])
+
