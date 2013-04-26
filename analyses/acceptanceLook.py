@@ -61,6 +61,10 @@ class acceptanceLook(supy.analysis) :
         jetPars = config['jetPars']
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genP4(),
+                              calculables.gen.sherpaTtbarProductsIndices(),
+                              calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
+                              calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
+                              calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
                               calculables.muon.Indices(obj['muon'], ptMin=ptMin),
                               calculables.genjet.genJetP4(),
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'], etaMax=jetPars['maxEta']),
