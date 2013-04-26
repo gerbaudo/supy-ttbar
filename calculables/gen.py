@@ -8,11 +8,13 @@ import ROOT as r
 # 'mc_vx_y', 'mc_vx_z', 'mc_vx_barcode', 'mc_child_index',
 # 'mc_parent_index']
 #
+
+defaultColl=('mc_','')
 #___________________________________________________________
 class genP4(wrappedChain.calculable) :
     @property
     def name(self) : return "genP4"
-    def __init__(self, collection=('mc_','')):
+    def __init__(self, collection=defaultColl):
         self.p4=utils.LorentzV
         self.fixes = collection
         self.stash(["E", "pt", "eta", "phi", "m"])
@@ -26,7 +28,11 @@ class genIndices(wrappedChain.calculable) :
     @property
     def name(self) : return "genIndices" + self.label
 
-    def __init__(self, pdgs = [], label = None, status = [], parentPdgs = [], parentIndexLabel='',maxLen=None) :
+    def __init__(self, collection=defaultColl,
+                 pdgs = [], label = None, status = [], parentPdgs = [],
+                 parentIndexLabel='',maxLen=None) :
+        self.fixes = collection
+        self.stash(['pdgId','status','parent_index'])
         self.label = label
         self.PDGs = frozenset(pdgs)
         self.status = frozenset(status)
@@ -40,9 +46,9 @@ class genIndices(wrappedChain.calculable) :
                                    "maxLen %s"%str(self.maxLen),
                                    ])
     def update(self,_) :
-        pdg = self.source['mc_pdgId']
-        status = self.source['mc_status']
-        parents = self.source['mc_parent_index']
+        pdg = self.source[self.pdgId]
+        status = self.source[self.status]
+        parents = self.source[self.parent_index]
         parentsPdgs = [[pdg[p] for p in par] for par in parents]
         parentsIndices = self.source[self.parentIndexLabel] if self.parentIndexLabel else []
         print 'trying to update genIndices ',self.label
@@ -95,10 +101,13 @@ class sherpaTtbarProductsIndices(wrappedChain.calculable) :
     27   3 [21, 22]        -12        ve
     28   3 [21, 22]         -5        /b
     """
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId','status','parent_index'])
     def update(self,_) :
-        pdg = self.source['mc_pdgId']
-        status = self.source['mc_status']
-        parents = self.source['mc_parent_index']
+        pdg = self.source[self.pdgId]
+        status = self.source[self.status]
+        parents = self.source[self.parent_index]
         self.value = filter( lambda i: status[i]==3 and len(parents[i])==2, range(pdg.size()) )
         #pdg = self.source['mc_pdgId']
         #parents = self.source['mc_parent_index']
