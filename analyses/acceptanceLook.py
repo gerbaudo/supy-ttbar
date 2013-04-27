@@ -7,6 +7,7 @@ MeV2GeV = 1.0e+3
 GeV=1.0e+3
 TeV=1.0e+3*GeV
 
+mcColl = ('mc_','')
 
 class acceptanceLook(supy.analysis) :
     def parameters(self) :
@@ -41,10 +42,11 @@ class acceptanceLook(supy.analysis) :
             supy.steps.histos.multiplicity('genJetIndices', max=50),
             ]
         stepsList += [
-            supy.steps.histos.multiplicity(ii, max=4) for ii in indices]
+            supy.steps.histos.multiplicity(ii.join(mcColl), max=4) for ii in indices]
         stepsList+=[supy.steps.histos.pt("genP4",
                                          20, 0.0, 300*GeV,
-                                         indices = ii, index = 0, xtitle = dropInd(ii))
+                                         indices = ii.join(mcColl), index = 0,
+                                         xtitle = dropInd(ii))
                     for ii in indices]
         shv = supy.steps.histos.value
         isoVar = "%sRelativeIso%s"%lepton
@@ -60,15 +62,13 @@ class acceptanceLook(supy.analysis) :
         ptMin, etaMax = lepton['ptMin'], lepton['etaMax']
         jetPars = config['jetPars']
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
-        listOfCalculables += [calculables.gen.genP4(),
-                              calculables.gen.sherpaTtbarProductsIndices(),
-                              calculables.gen.genIndiceslpos(), calculables.gen.genIndiceslneg(),
-                              calculables.gen.genIndicesb(),    calculables.gen.genIndicesbbar(),
-                              calculables.gen.genIndicesv(),    calculables.gen.genIndicesvbar(),
-                              calculables.muon.Indices(obj['muon'], ptMin=ptMin),
+        listOfCalculables += [calculables.muon.Indices(obj['muon'], ptMin=ptMin),
                               calculables.genjet.genJetP4(),
-                              calculables.genjet.genJetIndices(ptMin=jetPars['minPt'], etaMax=jetPars['maxEta']),
+                              calculables.genjet.genJetIndices(ptMin=jetPars['minPt'],
+                                                               etaMax=jetPars['maxEta']),
                               ]
+        print 'mcColl : ',mcColl
+        listOfCalculables += supy.calculables.fromCollections(calculables.gen, [mcColl])
         listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
 
         return listOfCalculables
