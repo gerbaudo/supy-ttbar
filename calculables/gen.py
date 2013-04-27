@@ -31,35 +31,34 @@ class genIndices(wrappedChain.calculable) :
     def __init__(self, collection=defaultColl,
                  pdgs = [], label = None, status = [], parentPdgs = [],
                  parentIndexLabel='',maxLen=None) :
+        self.label = label
         self.fixes = collection
         self.stash(['pdgId','status','parent_index'])
-        self.label = label
         self.PDGs = frozenset(pdgs)
-        self.status = frozenset(status)
+        self.statuses = frozenset(status)
         self.parentPdgs = frozenset(parentPdgs)
         self.parentIndexLabel = parentIndexLabel
         self.maxLen = maxLen
-        self.moreName = "; ".join(["pdgId in %s" %str(list(self.PDGs)),
-                                   "status in %s"%str(list(self.status)),
-                                   "parentPdgs in %s"%str(list(self.parentPdgs)),
-                                   "parentIndexLabel in %s"%self.parentIndexLabel,
-                                   "maxLen %s"%str(self.maxLen),
-                                   ])
+        self.moreName = "; ".join(filter(lambda x:x,
+                                         ["pdgId in %s" %str(list(self.PDGs)) if self.PDGs else '',
+                                          "status in %s"%str(list(self.statuses)) if self.statuses else '',
+                                          "parentPdgs in %s"%str(list(self.parentPdgs)) if self.parentPdgs else '',
+                                          "parentIndexLabel in %s"%self.parentIndexLabel if self.parentIndexLabel else '',
+                                          "maxLen %s"%str(self.maxLen) if self.maxLen else '',
+                                          ])
+                                  )
     def update(self,_) :
         pdg = self.source[self.pdgId]
         status = self.source[self.status]
         parents = self.source[self.parent_index]
         parentsPdgs = [[pdg[p] for p in par] for par in parents]
         parentsIndices = self.source[self.parentIndexLabel] if self.parentIndexLabel else []
-        print 'trying to update genIndices ',self.label
-        print 'input : %d elem'%len(pdg)
         self.value = filter( lambda i: ( (not self.PDGs) or (pdg.at(i) in self.PDGs) ) and \
-                                 ( (not self.status) or (status.at(i) in self.status) ) and \
+                                 ( (not self.statuses) or (status.at(i) in self.statuses) ) and \
                                  ( (not self.parentPdgs) or any(p in self.parentPdgs for p in parentsPdgs[i])) and \
                                  ( (not self.parentIndexLabel) or any(p in parents[i] for p in parentsIndices))
                                  ,
                              range(pdg.size()) )
-        print "found %d"%len(self.value)
         if self.maxLen : self.value = self.value[:self.maxLen] # trim if needed
 #___________________________________________________________
 class smTopIndex(wrappedChain.calculable) :
