@@ -40,6 +40,7 @@ class acceptanceLook(supy.analysis) :
             #steps.gen.particlePrinter(),
             supy.steps.histos.multiplicity("genP4", max=50),
             supy.steps.histos.multiplicity('genJetIndices', max=50),
+            supy.steps.histos.multiplicity('higgsIndices'.join(mcColl), max=5)
             ]
         stepsList += [
             supy.steps.histos.multiplicity(ii.join(mcColl), max=4) for ii in indices]

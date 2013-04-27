@@ -140,4 +140,24 @@ class genIndicesv(genIndicesSherpa) :
     def __init__(self, collection) : super(genIndicesv,    self).__init__(collection, [+12,+14])
 class genIndicesvbar(genIndicesSherpa) :
     def __init__(self, collection) : super(genIndicesvbar, self).__init__(collection, [-12,-14])
-
+#___________________________________________________________
+class higgsIndices(wrappedChain.calculable) :
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId','status','parent_index','child_index'])
+        self.moreName = 'higgsIndices'
+    def update(self, _) :
+        pdg        = self.source[self.pdgId]
+        status     = self.source[self.status]
+        parents    = self.source[self.parent_index]
+        children   = self.source[self.child_index]
+        higgsPdg = 25
+        iHiggs = [i for i,p in enumerate(pdg) if p==higgsPdg]
+        higgsChildren = [[pdg[i] if i<len(pdg) else 0 for i in hhc] for hhc in [children[i] for i in iHiggs] ]
+        higgsParents = [[pdg[i] if i<len(pdg) else 0 for i in hhp] for hhp in [parents[i] for i in iHiggs] ]
+        # there can be several intermediate higgs
+        boringIhiggs = [ih for i, ih in enumerate(iHiggs) if len(higgsChildren[i])<2 or higgsPdg in higgsChildren[i]]
+        interestingIhiggs = [i for i in iHiggs if i not in boringIhiggs]
+        higgsChildren = [hc for hc,ih in zip(higgsChildren, iHiggs) if ih in interestingIhiggs]
+        higgsParents = [hp for hp,ih in zip(higgsParents, iHiggs) if ih in interestingIhiggs]
+        self.value = interestingIhiggs
