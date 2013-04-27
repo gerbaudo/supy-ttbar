@@ -52,12 +52,13 @@ class ParticleCountFilter(analysisStep) :
 #####################################
 class particlePrinter(analysisStep) :
 
-    def __init__(self,minPt=-1.0,minStatus=-1):
+    def __init__(self,minPt=-1.0,minStatus=-1, indices=''):
         self.oneP4=utils.LorentzV()
         self.sumP4=utils.LorentzV()
         self.zeroP4=utils.LorentzV()
         self.minPt=minPt
         self.minStatus=minStatus
+        self.indices=indices
         
     def uponAcceptance (self,eventVars) :
         pdgLookupExists = True
@@ -72,7 +73,8 @@ class particlePrinter(analysisStep) :
 
         size=len(eventVars["genP4"])
         maxPrintSize=50
-        for iGen in range(min([maxPrintSize,size])) :
+        indices = eventVars[self.indices] if self.indices else range(min([maxPrintSize,size]))
+        for iGen in indices :
 
             p4=eventVars["genP4"][iGen]
             if p4.pt()<self.minPt : continue
