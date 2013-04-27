@@ -160,3 +160,32 @@ class higgsIndices(wrappedChain.calculable) :
         higgsChildren = [hc for hc,ih in zip(higgsChildren, iHiggs) if ih in interestingIhiggs]
         higgsParents = [hp for hp,ih in zip(higgsParents, iHiggs) if ih in interestingIhiggs]
         self.value = interestingIhiggs
+class higgsChildrenIndices(wrappedChain.calculable) :
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['higgsIndices','child_index'])
+    def update(self, _) :
+        higgsIndices = self.source[self.higgsIndices]
+        children   = self.source[self.child_index]
+        self.value = [i for chs in [children[h] for h in higgsIndices] for i in chs]
+class higgsParentsIndices(wrappedChain.calculable) :
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['higgsIndices','parent_index'])
+    def update(self, _) :
+        higgsIndices = self.source[self.higgsIndices]
+        parents   = self.source[self.parent_index]
+        self.value = [i for pas in [parents[h] for h in higgsIndices] for i in pas]
+
+class whIndices(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'whIndices'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['higgsIndices','higgsChildrenIndices','higgsParentsIndices'])
+        print self.name
+    def update(self, _) :
+        self.value = [i for i in self.source[self.higgsIndices]+
+                      self.source[self.higgsChildrenIndices]+
+                      self.source[self.higgsParentsIndices]+
+                      self.source['genIndicesW']]
