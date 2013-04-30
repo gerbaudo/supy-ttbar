@@ -211,13 +211,4 @@ class wChildrenIndices(wrappedChain.calculable) :
         while len(childrenW) and any([pdg[c] in ws for c in childrenW]) :
             wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
             childrenW = [i for i in children[wI]]
-        if not len(childrenW) :
-            print "cannot find any...debug"
-            wI        = self.source[self.wIndices][0]
-            childrenW = [c for c in children[wI]]
-            print "W at %d, children: %s -> %s"%(wI, str(childrenW), str([pdg[i] for i in childrenW]))
-            while len(childrenW) and any([pdg[c] in ws for c in childrenW]) :
-                wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
-                childrenW = [i for i in children[wI]]
-                print "now W at %d, children: %s -> %s"%(wI, str(childrenW), str([pdg[i] for i in childrenW]))
         self.value = childrenW
