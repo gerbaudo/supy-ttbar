@@ -217,7 +217,6 @@ class wIndices(wrappedChain.calculable) :
 class wChildrenIndices(wrappedChain.calculable) :
     @property
     def name(self) : return 'wChildrenIndices'.join(self.fixes)
-
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
         self.stash(['pdgId', 'child_index','wIndices'])
@@ -235,4 +234,52 @@ class wChildrenIndices(wrappedChain.calculable) :
             childrenW = [i for i in children[wI]]
         self.value = childrenW
 #___________________________________________________________
+class wDecayType(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'wDecayType'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId', 'wChildrenIndices'])
+    def update(self, _) :
+        children = self.source[self.wChildrenIndices]
+        pdgs     = self.source[self.pdgId]
+        ch = frozenset([pdgs[i] for i in children])
+        decay = None
+        el,ve, mu, vm, ta, vt = 11, 12, 13, 14, 15, 16
+        d, u, s, c, b = 1, 2, 3, 4, 5
+        lv, qqbar, unknown = 0, 1, -1
+        self.value = None
+        pdgs = frozenset([pdgs[i] for i in children])
+        if (frozenset([-el, +ve]).issubset(pdgs) or  frozenset([+el, -ve]).issubset(pdgs) or
+            frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
+            frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs) ) :
+            decay = lv
+        elif (frozenset([-u, +d]).issubset(pdgs) or  frozenset([+u, -d]).issubset(pdgs) or
+              frozenset([-u, +s]).issubset(pdgs) or  frozenset([+u, -s]).issubset(pdgs) or
+              frozenset([-u, +b]).issubset(pdgs) or  frozenset([+u, -b]).issubset(pdgs) or
+              frozenset([-c, +d]).issubset(pdgs) or  frozenset([+c, -d]).issubset(pdgs) or
+              frozenset([-c, +s]).issubset(pdgs) or  frozenset([+c, -s]).issubset(pdgs) or
+              frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs) ) :
+            decay = qqbar
+        else : decay = unknown
+        if decay==unknown :
+            print "unknown W decay: ",pdgs
+        self.value = decay
 #___________________________________________________________
+class wIsLeptonic(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'wIsLeptonic'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['wDecayType'])
+    def update(self, _) :
+        self.value = self.source[self.wDecayType]==0
+#___________________________________________________________
+class wIsHadronic(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'wIsHadronic'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['wDecayType'])
+    def update(self, _) :
+        self.value = self.source[self.wDecayType]==1
