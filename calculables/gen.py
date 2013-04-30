@@ -177,15 +177,47 @@ class higgsParentsIndices(wrappedChain.calculable) :
         parents   = self.source[self.parent_index]
         self.value = [i for pas in [parents[h] for h in higgsIndices] for i in pas]
 
-class whIndices(wrappedChain.calculable) :
+class wIndices(wrappedChain.calculable) :
+    "Index of the W that comes from the chargino decay"
     @property
-    def name(self) : return 'whIndices'.join(self.fixes)
+    def name(self) : return 'wIndices'.join(self.fixes)
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
-        self.stash(['higgsIndices','higgsChildrenIndices','higgsParentsIndices'])
-        print self.name
-    def update(self, _) :
-        self.value = [i for i in self.source[self.higgsIndices]+
-                      self.source[self.higgsChildrenIndices]+
-                      self.source[self.higgsParentsIndices]+
-                      self.source['genIndicesW']]
+        self.stash(['pdgId','parent_index'])
+    def update(self,_) :
+        ws        = frozenset([+24, -24])
+        charginos = frozenset([+1000024, -1000024])
+        pdg     = self.source[self.pdgId]
+        parents = self.source[self.parent_index]
+        self.value = filter( lambda i: pdg[i] in ws and len(parents[i])==1 and
+                             all([pdg[p] in charginos for p in parents[i]]),
+                             range(pdg.size()) )
+class wChildrenIndices(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'wChildrenIndices'.join(self.fixes)
+
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId', 'child_index','wIndices'])
+    def update(self,_) :
+        ws        = frozenset([+24, -24])
+        wI        = self.source[self.wIndices]
+        assert len(wI)==1,"don't know how to deal with multiple W"
+        wI        = wI[0]
+        pdg       = self.source[self.pdgId]
+        children  = self.source[self.child_index]
+        childrenW = children[wI]
+        # sometimes there are intermediate Ws...need to follow the thread
+        while len(childrenW) and any([pdg[c] in ws for c in childrenW]) :
+            wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
+            childrenW = [i for i in children[wI]]
+        if not len(childrenW) :
+            print "cannot find any...debug"
+            wI        = self.source[self.wIndices][0]
+            childrenW = [c for c in children[wI]]
+            print "W at %d, children: %s -> %s"%(wI, str(childrenW), str([pdg[i] for i in childrenW]))
+            while len(childrenW) and any([pdg[c] in ws for c in childrenW]) :
+                wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
+                childrenW = [i for i in children[wI]]
+                print "now W at %d, children: %s -> %s"%(wI, str(childrenW), str([pdg[i] for i in childrenW]))
+        self.value = childrenW
