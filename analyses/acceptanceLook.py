@@ -37,13 +37,25 @@ class acceptanceLook(supy.analysis) :
             return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
         stepsList = [
             supy.steps.printer.progressPrinter(),
-            #steps.gen.particlePrinter(),
+#              supy.steps.printer.printstuff(['higgsIndices'.join(mcColl),
+#                                             'higgsChildrenIndices'.join(mcColl),
+#                                             'wIndices'.join(mcColl),
+#                                             'genIndicesW',
+#                                             ]),
+#             steps.gen.particlePrinter(), #indices='whIndices'.join(mcColl)),
+#             steps.gen.particlePrinter(indices='whIndices'.join(mcColl)),
             supy.steps.histos.multiplicity("genP4", max=50),
             supy.steps.histos.multiplicity('genJetIndices', max=50),
-            supy.steps.histos.multiplicity('higgsIndices'.join(mcColl), max=5)
+            supy.steps.histos.multiplicity('higgsIndices'.join(mcColl), max=5),
+            supy.steps.histos.multiplicity('wIndices'.join(mcColl), max=5),
+            supy.steps.histos.multiplicity('wIndices'.join(mcColl), max=5),
+            supy.steps.histos.multiplicity('wChildrenIndices'.join(mcColl), max=10),
+            supy.steps.histos.value('higgsDecayType'.join(mcColl), 10,-1.5, 8.5),
+            #supy.steps.filters.multiplicity('wChildrenIndices'.join(mcColl), min=2, max=2), #.invert(),
+            supy.steps.histos.value('wDecayType'.join(mcColl), 3, -1.5, +1.5),
+            supy.steps.filters.value('wDecayType'.join(mcColl), min=1, max=1),
+            
             ]
-        stepsList += [
-            supy.steps.histos.multiplicity(ii.join(mcColl), max=4) for ii in indices]
         stepsList+=[supy.steps.histos.pt("genP4",
                                          20, 0.0, 300*GeV,
                                          indices = ii.join(mcColl), index = 0,
@@ -63,6 +75,7 @@ class acceptanceLook(supy.analysis) :
         ptMin, etaMax = lepton['ptMin'], lepton['etaMax']
         jetPars = config['jetPars']
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
+        listOfCalculables += [calculables.gen.genIndices(mcColl, [+24,-24],'W')]
         listOfCalculables += [calculables.muon.Indices(obj['muon'], ptMin=ptMin),
                               calculables.genjet.genJetP4(),
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'],
@@ -83,14 +96,14 @@ class acceptanceLook(supy.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        test = True #False
-        nEventsMax= 100 if test else None
+        test = False #True
+        nEventsMax= 4 if test else None
         return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
                 )
 
     def conclude(self,pars) :
         org = self.organizer(pars)
         org.scale(lumiToUseInAbsenceOfData=20.0)
-        supy.plotter( org,
-                      pdfFileName = self.pdfFileName(org.tag),
-                      ).plotAll()
+        supy.plotter(org,
+                     pdfFileName = self.pdfFileName(org.tag),
+                     ).plotAll()
