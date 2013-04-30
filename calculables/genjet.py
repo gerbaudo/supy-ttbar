@@ -19,7 +19,7 @@ class Indices(wrappedChain.calculable) :
         self.ptMin = ptMin
         self.etaMax = etaMax
         self.moreName = ';'.join(filter(lambda x:x,
-                                        ("pT>%g GeV"%ptMin if ptMin else '',
+                                        ("pT>%g MeV"%ptMin if ptMin else '',
                                          "|eta|<%g"%etaMax if etaMax else '')))
     def update(self, _) :
         p4s = self.source['genJetP4']
