@@ -160,6 +160,7 @@ class higgsIndices(wrappedChain.calculable) :
         higgsChildren = [hc for hc,ih in zip(higgsChildren, iHiggs) if ih in interestingIhiggs]
         higgsParents = [hp for hp,ih in zip(higgsParents, iHiggs) if ih in interestingIhiggs]
         self.value = interestingIhiggs
+#___________________________________________________________
 class higgsChildrenIndices(wrappedChain.calculable) :
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
@@ -168,6 +169,7 @@ class higgsChildrenIndices(wrappedChain.calculable) :
         higgsIndices = self.source[self.higgsIndices]
         children   = self.source[self.child_index]
         self.value = [i for chs in [children[h] for h in higgsIndices] for i in chs]
+#___________________________________________________________
 class higgsParentsIndices(wrappedChain.calculable) :
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
@@ -176,7 +178,26 @@ class higgsParentsIndices(wrappedChain.calculable) :
         higgsIndices = self.source[self.higgsIndices]
         parents   = self.source[self.parent_index]
         self.value = [i for pas in [parents[h] for h in higgsIndices] for i in pas]
-
+#___________________________________________________________
+class higgsDecayType(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'higgsDecayType'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId','higgsChildrenIndices'])
+    def update(self, _) :
+        children = self.source[self.higgsChildrenIndices]
+        pdgs     = self.source[self.pdgId]
+        ch = [pdgs[i] for i in children]
+        decay = None
+        if   any(p in ch for p in [-24, +24])  : decay = 0 # 'WW'
+        elif any(p in ch for p in [23])        : decay = 1 # 'ZZ'
+        elif any(p in ch for p in [-15, +15])  : decay = 2 # 'tautau'
+        elif any(p in ch for p in [-5, +5])    : decay = 3 # 'bbbar'
+        elif any(p in ch for p in [-13, +13])  : decay = 4 # 'mumu'
+        else                                   : decay = -1# 'unknown'
+        self.value = decay
+#___________________________________________________________
 class wIndices(wrappedChain.calculable) :
     "Index of the W that comes from the chargino decay"
     @property
@@ -192,6 +213,7 @@ class wIndices(wrappedChain.calculable) :
         self.value = filter( lambda i: pdg[i] in ws and len(parents[i])==1 and
                              all([pdg[p] in charginos for p in parents[i]]),
                              range(pdg.size()) )
+#___________________________________________________________
 class wChildrenIndices(wrappedChain.calculable) :
     @property
     def name(self) : return 'wChildrenIndices'.join(self.fixes)
@@ -212,3 +234,5 @@ class wChildrenIndices(wrappedChain.calculable) :
             wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
             childrenW = [i for i in children[wI]]
         self.value = childrenW
+#___________________________________________________________
+#___________________________________________________________
