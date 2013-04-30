@@ -21,7 +21,7 @@ class acceptanceLook(supy.analysis) :
 
         fieldsLepton =                           ['name', 'ptMin', 'etaMax',   'isoVar', 'isoType']
         leptons['muon'] = dict(zip(fieldsLepton, ['muon',      10,      2.4, 'ptcone30', 'relative']))
-        jetPars = {'maxEta' : 2.5, 'minPt' : 20.0}
+        jetPars = {'maxEta' : 2.5, 'minPt' : 20.0*GeV}
         return {
             'objects'  : objects,
             'lepton'   : leptons,
@@ -35,12 +35,12 @@ class acceptanceLook(supy.analysis) :
         hi, wi = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl)
         stepsList = [
             supy.steps.printer.progressPrinter(),
-            ssh.multiplicity("genP4", max=50),
-            ssh.multiplicity('genJetIndices', max=50),
-            ssh.multiplicity(hi, max=5),
-            ssh.multiplicity(wi, max=5),
-            ssh.multiplicity(wi, max=5),
-            ssh.multiplicity('wChildrenIndices'.join(mcColl), max=10),
+#             ssh.multiplicity("genP4", max=50),
+            ssh.multiplicity('genJetIndices', max=15),
+#             ssh.multiplicity(hi, max=5),
+#             ssh.multiplicity(wi, max=5),
+#             ssh.multiplicity(wi, max=5),
+#             ssh.multiplicity('wChildrenIndices'.join(mcColl), max=10),
             steps.gen.higgsDecay(),
             steps.gen.wDecay(),
             ssh.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
@@ -82,7 +82,7 @@ class acceptanceLook(supy.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        test = True #False
+        test = False #True
         nEventsMax= 4 if test else None
         return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
                 )
@@ -92,5 +92,6 @@ class acceptanceLook(supy.analysis) :
         org.scale(lumiToUseInAbsenceOfData=20.0)
         supy.plotter(org,
                      pdfFileName = self.pdfFileName(org.tag),
-                     doLog=False,
+                     doLog = False,
+                     blackList = ['lumiHisto','xsHisto','nJobsHisto'],
                      ).plotAll()
