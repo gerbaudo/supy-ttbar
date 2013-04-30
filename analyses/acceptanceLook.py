@@ -35,24 +35,30 @@ class acceptanceLook(supy.analysis) :
         indices = ['genIndices'+p for p in ['lpos','lneg', 'b', 'bbar', 'v', 'vbar']]
         def dropInd(idxName) :
             return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
+        hi, wi = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl)
         stepsList = [
             supy.steps.printer.progressPrinter(),
-#              supy.steps.printer.printstuff(['higgsIndices'.join(mcColl),
+#              supy.steps.printer.printstuff([hi,
 #                                             'higgsChildrenIndices'.join(mcColl),
-#                                             'wIndices'.join(mcColl),
+#                                             wi,
 #                                             'genIndicesW',
 #                                             ]),
 #             steps.gen.particlePrinter(), #indices='whIndices'.join(mcColl)),
 #             steps.gen.particlePrinter(indices='whIndices'.join(mcColl)),
             supy.steps.histos.multiplicity("genP4", max=50),
             supy.steps.histos.multiplicity('genJetIndices', max=50),
-            supy.steps.histos.multiplicity('higgsIndices'.join(mcColl), max=5),
-            supy.steps.histos.multiplicity('wIndices'.join(mcColl), max=5),
-            supy.steps.histos.multiplicity('wIndices'.join(mcColl), max=5),
+            supy.steps.histos.multiplicity(hi, max=5),
+            supy.steps.histos.multiplicity(wi, max=5),
+            supy.steps.histos.multiplicity(wi, max=5),
             supy.steps.histos.multiplicity('wChildrenIndices'.join(mcColl), max=10),
-            supy.steps.histos.value('higgsDecayType'.join(mcColl), 10,-1.5, 8.5),
+            steps.gen.higgsDecay(),
+            steps.gen.wDecay(),
+            supy.steps.histos.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
+            supy.steps.histos.absEta('genP4',100, 0.,       5, hi, xtitle='H_{truth}'),
+            supy.steps.histos.pt    ('genP4',100, 0., 250*GeV, wi, xtitle='W_{truth}'),
+            supy.steps.histos.absEta('genP4',100, 0.,       5, wi, xtitle='W_{truth}'),
             #supy.steps.filters.multiplicity('wChildrenIndices'.join(mcColl), min=2, max=2), #.invert(),
-            supy.steps.histos.value('wDecayType'.join(mcColl), 3, -1.5, +1.5),
+
             supy.steps.filters.value('wDecayType'.join(mcColl), min=1, max=1),
             
             ]
@@ -96,7 +102,7 @@ class acceptanceLook(supy.analysis) :
         return [exampleDict]
 
     def listOfSamples(self,config) :
-        test = False #True
+        test = True #False
         nEventsMax= 4 if test else None
         return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
                 )
@@ -106,4 +112,5 @@ class acceptanceLook(supy.analysis) :
         org.scale(lumiToUseInAbsenceOfData=20.0)
         supy.plotter(org,
                      pdfFileName = self.pdfFileName(org.tag),
+                     doLog=False,
                      ).plotAll()
