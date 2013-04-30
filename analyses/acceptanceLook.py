@@ -31,47 +31,28 @@ class acceptanceLook(supy.analysis) :
     def listOfSteps(self,config) :
         obj = config["objects"]
         lepton = obj['muon']
-        print lepton
-        indices = ['genIndices'+p for p in ['lpos','lneg', 'b', 'bbar', 'v', 'vbar']]
-        def dropInd(idxName) :
-            return idxName.replace('Index','').replace('genIndices','').replace('Indices','')
+        ssf, ssh = supy.steps.filters, supy.steps.histos
         hi, wi = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl)
         stepsList = [
             supy.steps.printer.progressPrinter(),
-#              supy.steps.printer.printstuff([hi,
-#                                             'higgsChildrenIndices'.join(mcColl),
-#                                             wi,
-#                                             'genIndicesW',
-#                                             ]),
-#             steps.gen.particlePrinter(), #indices='whIndices'.join(mcColl)),
-#             steps.gen.particlePrinter(indices='whIndices'.join(mcColl)),
-            supy.steps.histos.multiplicity("genP4", max=50),
-            supy.steps.histos.multiplicity('genJetIndices', max=50),
-            supy.steps.histos.multiplicity(hi, max=5),
-            supy.steps.histos.multiplicity(wi, max=5),
-            supy.steps.histos.multiplicity(wi, max=5),
-            supy.steps.histos.multiplicity('wChildrenIndices'.join(mcColl), max=10),
+            ssh.multiplicity("genP4", max=50),
+            ssh.multiplicity('genJetIndices', max=50),
+            ssh.multiplicity(hi, max=5),
+            ssh.multiplicity(wi, max=5),
+            ssh.multiplicity(wi, max=5),
+            ssh.multiplicity('wChildrenIndices'.join(mcColl), max=10),
             steps.gen.higgsDecay(),
             steps.gen.wDecay(),
-            supy.steps.histos.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
-            supy.steps.histos.absEta('genP4',100, 0.,       5, hi, xtitle='H_{truth}'),
-            supy.steps.histos.pt    ('genP4',100, 0., 250*GeV, wi, xtitle='W_{truth}'),
-            supy.steps.histos.absEta('genP4',100, 0.,       5, wi, xtitle='W_{truth}'),
-            #supy.steps.filters.multiplicity('wChildrenIndices'.join(mcColl), min=2, max=2), #.invert(),
-
-            supy.steps.filters.value('wDecayType'.join(mcColl), min=1, max=1),
-            
+            ssh.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
+            ssh.absEta('genP4',100, 0.,       5, hi, xtitle='H_{truth}'),
+            ssh.pt    ('genP4',100, 0., 250*GeV, wi, xtitle='W_{truth}'),
+            ssh.absEta('genP4',100, 0.,       5, wi, xtitle='W_{truth}'),
+            ssf.value('wIsHadronic'.join(mcColl), min=1),
             ]
-        stepsList+=[supy.steps.histos.pt("genP4",
-                                         20, 0.0, 300*GeV,
-                                         indices = ii.join(mcColl), index = 0,
-                                         xtitle = dropInd(ii))
-                    for ii in indices]
-        shv = supy.steps.histos.value
-        isoVar = "%sRelativeIso%s"%lepton
-        lepInd = 'mu_staco_Indices'
-        # stepsList += [supy.steps.printer.printstuff(["%sRelativeIso%s"%lepton])]
-        stepsList+= [shv(isoVar, 50, 0.0, 1.0, indices = lepInd, index=0),]
+#         isoVar = "%sRelativeIso%s"%lepton
+#         lepInd = 'mu_staco_Indices'
+#         # stepsList += [supy.steps.printer.printstuff(["%sRelativeIso%s"%lepton])]
+#         stepsList+= [shv(isoVar, 50, 0.0, 1.0, indices = lepInd, index=0),]
 
         return stepsList
 
@@ -87,7 +68,6 @@ class acceptanceLook(supy.analysis) :
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'],
                                                                etaMax=jetPars['maxEta']),
                               ]
-        print 'mcColl : ',mcColl
         listOfCalculables += supy.calculables.fromCollections(calculables.gen, [mcColl])
         listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
 
