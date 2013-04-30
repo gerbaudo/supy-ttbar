@@ -59,7 +59,7 @@ class particlePrinter(analysisStep) :
         self.minPt=minPt
         self.minStatus=minStatus
         self.indices=indices
-        
+
     def uponAcceptance (self,eventVars) :
         pdgLookupExists = True
         pdgLookup = PdgLookup()
@@ -95,7 +95,7 @@ class particlePrinter(analysisStep) :
             outString+="  %#8.1f"%p4.pt()
             outString+="  %#8.1f"%p4.eta()
             outString+="  %#5.1f"%p4.phi()
-            outString+="  %#6.1f"%p4.mass()        
+            outString+="  %#6.1f"%p4.mass()
             if not (iGen in parents) : outString+="   non-mo"
             print outString
         print
@@ -129,4 +129,42 @@ class ttbarPrinter(analysisStep) :
                                +["%.3f"%v for v in [p4s[i].pt(),p4s[i].eta(), p4s[i].phi()]]\
                                +[status[i]]))
         print
+#___________________________________________________________
+class particleDecay(analysisStep) :
+    def __init__(self, var='', title='') :
+        self.var = var
+        self.title = title
+    def makeLabels(self, eventVars) : print 'to be implemented in inheriting class'
+    def uponAcceptance(self, eventVars) :
+        if not hasattr(self, 'labels') : self.makeLabels(eventVars)
+        iBin = self.labels.index(self.decays[eventVars[self.var]])
+        self.book.fill(iBin, self.var, self.nBins, 0.0, self.nBins,
+                       title = self.title, xAxisLabels = self.labels)
+#___________________________________________________________
+class higgsDecay(particleDecay) :
+    def __init__(self, var='mc_higgsDecayType', title=';Higgs Decay;events / bin') :
+        super(higgsDecay, self).__init__(var, title)
+    def makeLabels(self, eventVars) :
+        self.decays = { # see gen.higgsDecayType
+            0  : 'WW',
+            1  : 'ZZ',
+            2  : 'tautau',
+            3  : 'bbbar',
+            4  : 'mumu',
+            -1 : 'unknown',
+            }
+        self.labels = sorted(list(set(self.decays.values())))
+        self.nBins  = len(self.labels)
+#___________________________________________________________
+class wDecay(particleDecay) :
+    def __init__(self, var='mc_wDecayType', title=';W Decay;events / bin') :
+        super(wDecay, self).__init__(var, title)
+    def makeLabels(self, eventVars) :
+        self.decays = { # see gen.wDecayType
+            0  : 'l#nu',
+            1  : "q#bar{q}",
+            -1 : 'unknown',
+            }
+        self.labels = sorted(list(set(self.decays.values())))
+        self.nBins  = len(self.labels)
 
