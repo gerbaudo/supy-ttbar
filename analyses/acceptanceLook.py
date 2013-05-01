@@ -32,11 +32,12 @@ class acceptanceLook(supy.analysis) :
         obj = config["objects"]
         lepton = obj['muon']
         ssf, ssh = supy.steps.filters, supy.steps.histos
-        hi, wi = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl)
+        hi, wi, wci = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl), 'wChildrenIndices'.join(mcColl)
         stepsList = [
             supy.steps.printer.progressPrinter(),
 #             ssh.multiplicity("genP4", max=50),
             ssh.multiplicity('genJetIndices', max=15),
+            ssh.multiplicity('recJetIndices', max=15),
 #             ssh.multiplicity(hi, max=5),
 #             ssh.multiplicity(wi, max=5),
 #             ssh.multiplicity(wi, max=5),
@@ -48,6 +49,14 @@ class acceptanceLook(supy.analysis) :
             ssh.pt    ('genP4',100, 0., 250*GeV, wi, xtitle='W_{truth}'),
             ssh.absEta('genP4',100, 0.,       5, wi, xtitle='W_{truth}'),
             ssf.value('wIsHadronic'.join(mcColl), min=1),
+            ssh.pt    ('genP4',100, 0., 250*GeV, wci, 0, xtitle='q_{0,truth}'),
+            ssh.pt    ('genP4',100, 0., 250*GeV, wci, 1, xtitle='q_{1,truth}'),
+            ssh.absEta('genP4',100, 0.,       5, wci, 0, xtitle='q_{0,truth}'),
+            ssh.absEta('genP4',100, 0.,       5, wci, 1, xtitle='q_{1,truth}'),
+            steps.gen.deltaR(indices=wci),
+            ssh.multiplicity('UnmatchedJetIndices', max=15),
+            ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedJetIndices'),
+            ssh.absEta('genP4',100, 0.,       5, 'UnmatchedJetIndices'),
             ]
 #         isoVar = "%sRelativeIso%s"%lepton
 #         lepInd = 'mu_staco_Indices'
@@ -67,9 +76,13 @@ class acceptanceLook(supy.analysis) :
                               calculables.genjet.genJetP4(),
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'],
                                                                etaMax=jetPars['maxEta']),
+                              calculables.recjet.recJetIndices(ptMin=jetPars['minPt'],
+                                                               etaMax=jetPars['maxEta']),
+                              calculables.genjet.UnmatchedJetIndices('recJetP4','recJetIndices'),
                               ]
         listOfCalculables += supy.calculables.fromCollections(calculables.gen, [mcColl])
         listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
+        listOfCalculables += supy.calculables.fromCollections(calculables.recjet, [obj['jet']])
 
         return listOfCalculables
 
