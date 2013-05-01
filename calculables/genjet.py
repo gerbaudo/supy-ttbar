@@ -37,6 +37,7 @@ class UnmatchedJetIndices(wrappedChain.calculable) :
         self.otherP4Coll=otherP4Coll
         self.otherIndices = otherIndices
         self.maxDr = 0.4
+        self.moreName = "genJetIndices w/out %.1f match %s"%(self.maxDr, otherIndices)
     def update(self, _) :
         gP4s = self.source['genJetP4']
         gIds = self.source['genJetIndices']
