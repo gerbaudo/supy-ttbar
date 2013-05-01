@@ -167,4 +167,19 @@ class wDecay(particleDecay) :
             }
         self.labels = sorted(list(set(self.decays.values())))
         self.nBins  = len(self.labels)
-
+#___________________________________________________________
+class deltaR(analysisStep) :
+    def __init__(self, var='genP4', indices='', title='', N=50, xmin=0.0, xmax=4.0) :
+        for item in ['var','indices', 'title', 'N', 'xmin', 'xmax'] : setattr(self, item, eval(item))
+        self.moreName = 'deltaR'+var+':'+indices
+        self.title = ';#Delta R ['+indices+'];events / bin'
+    def uponAcceptance(self,eventVars) :
+        val = eventVars[self.var]
+        indices = eventVars[self.indices]
+        if val is None : return
+        if len(indices)!=2 :
+            print "skipping event (%d indices)"%len(indices)
+            return
+        p0, p1 = val[indices[0]], val[indices[1]]
+        self.book.fill(r.Math.VectorUtil.DeltaR(p0, p1),
+                       self.moreName, self.N, self.xmin, self.xmax, title=self.title)
