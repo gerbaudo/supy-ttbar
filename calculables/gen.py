@@ -283,3 +283,29 @@ class wIsHadronic(wrappedChain.calculable) :
         self.stash(['wDecayType'])
     def update(self, _) :
         self.value = self.source[self.wDecayType]==1
+#___________________________________________________________
+class UnmatchedGenIndices(wrappedChain.calculable) :
+    "Unmatched truth particles (generally partons without a matching reco jet"
+    def __init__(self, genIndices='', otherP4Coll='', otherIndices='') :
+        self.genIndices   = genIndices
+        self.otherP4Coll  = otherP4Coll
+        self.otherIndices = otherIndices
+        self.maxDr = 0.4
+        self.moreName = "%s w/out %.1f match %s"%(genIndices, self.maxDr, otherIndices)
+    def update(self, _) :
+        gP4s = self.source['genP4']
+        gIds = self.source[self.genIndices]
+        rP4s = self.source[self.otherP4Coll]
+        rIds = self.source[self.otherIndices]
+        unmatched = []
+        for ig in gIds :
+            jg = gP4s[ig]
+            match = None
+            for ir in rIds :
+                jr =  rP4s[ir]
+                if r.Math.VectorUtil.DeltaR(jg, jr) < self.maxDr :
+                    match = True
+                    break
+            if not match : unmatched.append(ig)
+        self.value = unmatched
+#___________________________________________________________
