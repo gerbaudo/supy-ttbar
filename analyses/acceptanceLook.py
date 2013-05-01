@@ -57,6 +57,9 @@ class acceptanceLook(supy.analysis) :
             ssh.multiplicity('UnmatchedJetIndices', max=15),
             ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedJetIndices'),
             ssh.absEta('genP4',100, 0.,       5, 'UnmatchedJetIndices'),
+            ssh.multiplicity('UnmatchedGenIndices', max=15),
+            ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedGenIndices'),
+            ssh.absEta('genP4',100, 0.,       5, 'UnmatchedGenIndices'),
             ]
 #         isoVar = "%sRelativeIso%s"%lepton
 #         lepInd = 'mu_staco_Indices'
@@ -70,6 +73,7 @@ class acceptanceLook(supy.analysis) :
         lepton = config['lepton']
         ptMin, etaMax = lepton['ptMin'], lepton['etaMax']
         jetPars = config['jetPars']
+        wci = 'wChildrenIndices'.join(mcColl)
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genIndices(mcColl, [+24,-24],'W')]
         listOfCalculables += [calculables.muon.Indices(obj['muon'], ptMin=ptMin),
@@ -79,6 +83,7 @@ class acceptanceLook(supy.analysis) :
                               calculables.recjet.recJetIndices(ptMin=jetPars['minPt'],
                                                                etaMax=jetPars['maxEta']),
                               calculables.genjet.UnmatchedJetIndices('recJetP4','recJetIndices'),
+                              calculables.gen.UnmatchedGenIndices(wci, 'recJetP4','recJetIndices'),
                               ]
         listOfCalculables += supy.calculables.fromCollections(calculables.gen, [mcColl])
         listOfCalculables += supy.calculables.fromCollections(calculables.muon, [obj["muon"]])
