@@ -262,8 +262,6 @@ class wDecayType(wrappedChain.calculable) :
               frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs) ) :
             decay = qqbar
         else : decay = unknown
-        if decay==unknown :
-            print "unknown W decay: ",pdgs
         self.value = decay
 #___________________________________________________________
 class wIsLeptonic(wrappedChain.calculable) :
