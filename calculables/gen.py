@@ -141,6 +141,8 @@ class genIndicesvbar(genIndicesSherpa) :
     def __init__(self, collection) : super(genIndicesvbar, self).__init__(collection, [-12,-14])
 #___________________________________________________________
 class higgsIndices(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'higgsIndices'.join(self.fixes)
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
         self.stash(['pdgId','status','parent_index','child_index'])
@@ -162,6 +164,8 @@ class higgsIndices(wrappedChain.calculable) :
         self.value = interestingIhiggs
 #___________________________________________________________
 class higgsChildrenIndices(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'higgsChildrenIndices'.join(self.fixes)
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
         self.stash(['higgsIndices','child_index'])
@@ -171,6 +175,8 @@ class higgsChildrenIndices(wrappedChain.calculable) :
         self.value = [i for chs in [children[h] for h in higgsIndices] for i in chs]
 #___________________________________________________________
 class higgsParentsIndices(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'higgsParentsIndices'.join(self.fixes)
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
         self.stash(['higgsIndices','parent_index'])
@@ -198,6 +204,16 @@ class higgsDecayType(wrappedChain.calculable) :
         else                                   : decay = -1# 'unknown'
         self.value = decay
 #___________________________________________________________
+class higgsIsWw(wrappedChain.calculable) :
+    @property
+    def name(self) : return 'higgsIsWw'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.key = 'higgsDecayType'.join(collection)
+        self.stash([self.key])
+    def update(self, _) :
+        self.value = self.source[self.key]==0
+#___________________________________________________________
 class wIndices(wrappedChain.calculable) :
     "Index of the W that comes from the chargino decay"
     @property
@@ -214,6 +230,17 @@ class wIndices(wrappedChain.calculable) :
                              all([pdg[p] in charginos for p in parents[i]]),
                              range(pdg.size()) )
 #___________________________________________________________
+def extractWchildrenIndices(wIndex=None, pdgs=[], childrenIndices=[[]]) :
+    ws        = frozenset([+24, -24])
+    wI        = wIndex
+    children  = childrenIndices
+    childrenW = children[wI]
+    # sometimes there are intermediate Ws...need to follow the thread
+    while len(childrenW) and any([pdgs[c] in ws for c in childrenW]) :
+        wI = filter(lambda i: pdgs[i] in ws, childrenW)[0]
+        childrenW = [i for i in children[wI]]
+    return childrenW
+#___________________________________________________________
 class wChildrenIndices(wrappedChain.calculable) :
     @property
     def name(self) : return 'wChildrenIndices'.join(self.fixes)
@@ -225,14 +252,27 @@ class wChildrenIndices(wrappedChain.calculable) :
         wI        = self.source[self.wIndices]
         assert len(wI)==1,"don't know how to deal with multiple W"
         wI        = wI[0]
-        pdg       = self.source[self.pdgId]
-        children  = self.source[self.child_index]
-        childrenW = children[wI]
-        # sometimes there are intermediate Ws...need to follow the thread
-        while len(childrenW) and any([pdg[c] in ws for c in childrenW]) :
-            wI = filter(lambda i: pdg[i] in ws, childrenW)[0]
-            childrenW = [i for i in children[wI]]
-        self.value = childrenW
+        self.value = extractWchildrenIndices(wI, self.source[self.pdgId],
+                                             self.source[self.child_index])
+#___________________________________________________________
+def extractWdecayType(pdgChildren=[]):
+    pdgs = frozenset(pdgChildren)
+    el,ve, mu, vm, ta, vt = 11, 12, 13, 14, 15, 16
+    d, u, s, c, b = 1, 2, 3, 4, 5
+    lv, qqbar, unknown = 0, 1, -1
+    if (frozenset([-el, +ve]).issubset(pdgs) or  frozenset([+el, -ve]).issubset(pdgs) or
+        frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
+        frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs) ) :
+        return lv
+    elif (frozenset([-u, +d]).issubset(pdgs) or  frozenset([+u, -d]).issubset(pdgs) or
+          frozenset([-u, +s]).issubset(pdgs) or  frozenset([+u, -s]).issubset(pdgs) or
+          frozenset([-u, +b]).issubset(pdgs) or  frozenset([+u, -b]).issubset(pdgs) or
+          frozenset([-c, +d]).issubset(pdgs) or  frozenset([+c, -d]).issubset(pdgs) or
+          frozenset([-c, +s]).issubset(pdgs) or  frozenset([+c, -s]).issubset(pdgs) or
+          frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs) ) :
+        return qqbar
+    else :
+        return unknown
 #___________________________________________________________
 class wDecayType(wrappedChain.calculable) :
     @property
@@ -243,26 +283,8 @@ class wDecayType(wrappedChain.calculable) :
     def update(self, _) :
         children = self.source[self.wChildrenIndices]
         pdgs     = self.source[self.pdgId]
-        ch = frozenset([pdgs[i] for i in children])
-        decay = None
-        el,ve, mu, vm, ta, vt = 11, 12, 13, 14, 15, 16
-        d, u, s, c, b = 1, 2, 3, 4, 5
-        lv, qqbar, unknown = 0, 1, -1
-        self.value = None
-        pdgs = frozenset([pdgs[i] for i in children])
-        if (frozenset([-el, +ve]).issubset(pdgs) or  frozenset([+el, -ve]).issubset(pdgs) or
-            frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
-            frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs) ) :
-            decay = lv
-        elif (frozenset([-u, +d]).issubset(pdgs) or  frozenset([+u, -d]).issubset(pdgs) or
-              frozenset([-u, +s]).issubset(pdgs) or  frozenset([+u, -s]).issubset(pdgs) or
-              frozenset([-u, +b]).issubset(pdgs) or  frozenset([+u, -b]).issubset(pdgs) or
-              frozenset([-c, +d]).issubset(pdgs) or  frozenset([+c, -d]).issubset(pdgs) or
-              frozenset([-c, +s]).issubset(pdgs) or  frozenset([+c, -s]).issubset(pdgs) or
-              frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs) ) :
-            decay = qqbar
-        else : decay = unknown
-        self.value = decay
+        pdgs     = [pdgs[i] for i in children]
+        self.value = extractWdecayType(pdgs)
 #___________________________________________________________
 class wIsLeptonic(wrappedChain.calculable) :
     @property
@@ -281,6 +303,87 @@ class wIsHadronic(wrappedChain.calculable) :
         self.stash(['wDecayType'])
     def update(self, _) :
         self.value = self.source[self.wDecayType]==1
+#___________________________________________________________
+class HwwWchildrenIndices(wrappedChain.calculable) :
+    "Indices of the children of the W from H->WW"
+    @property
+    def name(self) : return ("HwwW%dchildrenIndices"%self.wIndex()).join(self.fixes)
+    def __init__(self, collection=defaultColl, firstW=False, secondW=False) :
+        assert firstW!=secondW,"HwwWchildrenIndices: pick either first or second"
+        for attr in ['firstW', 'secondW'] : setattr(self, attr, eval(attr))
+        self.fixes = collection
+        self.stash(['pdgId','child_index','higgsChildrenIndices','higgsIsWw'])
+    def wIndex(self) : return 0 if self.firstW else 1
+    def update(self, _) :
+        pdgs      = self.source[self.pdgId]
+        isWw      = self.source[self.higgsIsWw]
+        children  = self.source[self.child_index]
+        hChildren = self.source[self.higgsChildrenIndices]
+        chPdgs = [pdgs[i] for i in hChildren]
+        self.value = []
+        Ws = [+24,-24]
+        if not isWw : return
+        wIndices = [i for i,p in zip(hChildren, chPdgs) if p in Ws]
+        nonWindices = [i for i in hChildren if i not in wIndices] # one can either have the W or its decay products (lv)
+        if not (len(nonWindices)/2 + len(wIndices))==2 : return # don't know how to interpret
+        nWs = len(wIndices)
+        if   nWs==2 :
+            w0Indices = extractWchildrenIndices(wIndices[0], pdgs, children)
+            w1Indices = extractWchildrenIndices(wIndices[1], pdgs, children)
+        elif nWs==1 :
+            w0Indices = extractWchildrenIndices(wIndices[0], pdgs, children)
+            w1Indices = nonWindices
+        else :
+            w0Indices = nonWindices[:2]
+            w1Indices = nonWindices[2:]
+        self.value = w0Indices if self.firstW else w1Indices
+class HwwW0childrenIndices(HwwWchildrenIndices) :
+    def __init__(self, collection=defaultColl) :
+        super(HwwW0childrenIndices, self).__init__(collection, firstW=True)
+class HwwW1childrenIndices(HwwWchildrenIndices) :
+    def __init__(self, collection=defaultColl) :
+        super(HwwW1childrenIndices, self).__init__(collection, secondW=True)
+#___________________________________________________________
+class HwwWdecayType(wrappedChain.calculable) :
+    "Decay type of the W from H->WW"
+    @property
+    def name(self) : return ("HwwW%ddecayType"%self.wIndex()).join(self.fixes)
+    def __init__(self, collection=defaultColl, firstW=False, secondW=False) :
+        assert firstW!=secondW,"HwwWdecayType: pick either first or second"
+        for attr in ['firstW', 'secondW'] : setattr(self, attr, eval(attr))
+        self.fixes = collection
+        self.stash(['pdgId','HwwW0childrenIndices','HwwW1childrenIndices'])
+    def wIndex(self) : return 0 if self.firstW else 1
+    def update(self, _) :
+        pdgs       = self.source[self.pdgId]
+        childrenW0 = self.source[self.HwwW0childrenIndices]
+        childrenW1 = self.source[self.HwwW1childrenIndices]
+        childrenIndices = childrenW0 if self.firstW else childrenW1
+        childrenPgds = [pdgs[i] for i in childrenIndices]
+        self.value = extractWdecayType(childrenPgds)
+class HwwW0decayType(HwwWdecayType) :
+    def __init__(self, collection=defaultColl) :
+        super(HwwW0decayType, self).__init__(collection, firstW=True)
+class HwwW1decayType(HwwWdecayType) :
+    def __init__(self, collection=defaultColl) :
+        super(HwwW1decayType, self).__init__(collection, secondW=True)
+#___________________________________________________________
+class HwwHadronicIndices(wrappedChain.calculable) :
+    "Indices of the quarks from the hadronic W's from H->WW"
+    @property
+    def name(self) : return 'HwwHadronicIndices'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['HwwW0childrenIndices', 'HwwW0decayType',
+                    'HwwW1childrenIndices', 'HwwW1decayType'])
+    def update(self, _) :
+        w0chI = self.source[self.HwwW0childrenIndices]
+        w1chI = self.source[self.HwwW1childrenIndices]
+        w0dec = self.source[self.HwwW0decayType]
+        w1dec = self.source[self.HwwW1decayType]
+        def isWhad(decay) : return 1==decay
+        w0isHad, w1isHad = isWhad(w0dec), isWhad(w1dec)
+        self.value = (w0chI if isWhad(w0dec) else []) + (w1chI if isWhad(w1dec) else [])
 #___________________________________________________________
 class UnmatchedGenIndices(wrappedChain.calculable) :
     "Unmatched truth particles (generally partons without a matching reco jet"
