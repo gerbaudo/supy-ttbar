@@ -204,15 +204,23 @@ class higgsDecayType(wrappedChain.calculable) :
         else                                   : decay = -1# 'unknown'
         self.value = decay
 #___________________________________________________________
-class higgsIsWw(wrappedChain.calculable) :
-    @property
-    def name(self) : return 'higgsIsWw'.join(self.fixes)
-    def __init__(self, collection=defaultColl) :
+class higgsIsDecayType(wrappedChain.calculable) :
+    def __init__(self, decayType, collection=defaultColl) :
         self.fixes = collection
         self.key = 'higgsDecayType'.join(collection)
         self.stash([self.key])
-    def update(self, _) :
-        self.value = self.source[self.key]==0
+        self.decayType = decayType # see higgsDecayType above
+    def update(self, _) : self.value = self.source[self.key]==self.decayType
+#___________________________________________________________
+class higgsIsWw(higgsIsDecayType) :
+    @property
+    def name(self) : return 'higgsIsWw'.join(self.fixes)
+    def __init__(self, collection) : super(higgsIsWw, self).__init__(0, collection)
+#___________________________________________________________
+class higgsIsTauTau(higgsIsDecayType) :
+    @property
+    def name(self) : return 'higgsIsTauTau'.join(self.fixes)
+    def __init__(self, collection) : super(higgsIsTauTau, self).__init__(2, collection)
 #___________________________________________________________
 class wIndices(wrappedChain.calculable) :
     "Index of the W that comes from the chargino decay"
