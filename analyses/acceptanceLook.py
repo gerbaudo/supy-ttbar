@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import supy
-import calculables,steps,samples, ROOT as r
+import calculables,steps,samples
 
 MeV2GeV = 1.0e+3
 GeV=1.0e+3
@@ -36,8 +36,8 @@ class acceptanceLook(supy.analysis) :
         stepsList = [
             supy.steps.printer.progressPrinter(),
 #             ssh.multiplicity("genP4", max=50),
-            ssh.multiplicity('genJetIndices', max=15),
-            ssh.multiplicity('recJetIndices', max=15),
+#             ssh.multiplicity('genJetIndices', max=15),
+#             ssh.multiplicity('recJetIndices', max=15),
 #             ssh.multiplicity(hi, max=5),
 #             ssh.multiplicity(wi, max=5),
 #             ssh.multiplicity(wi, max=5),
@@ -53,13 +53,13 @@ class acceptanceLook(supy.analysis) :
             ssh.pt    ('genP4',100, 0., 250*GeV, wci, 1, xtitle='q_{1,truth}'),
             ssh.absEta('genP4',100, 0.,       5, wci, 0, xtitle='q_{0,truth}'),
             ssh.absEta('genP4',100, 0.,       5, wci, 1, xtitle='q_{1,truth}'),
-            steps.gen.deltaR(indices=wci),
-            ssh.multiplicity('UnmatchedJetIndices', max=15),
-            ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedJetIndices'),
-            ssh.absEta('genP4',100, 0.,       5, 'UnmatchedJetIndices'),
-            ssh.multiplicity('UnmatchedGenIndices', max=15),
-            ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedGenIndices'),
-            ssh.absEta('genP4',100, 0.,       5, 'UnmatchedGenIndices'),
+#             steps.gen.deltaR(indices=wci),
+#             ssh.multiplicity('UnmatchedJetIndices', max=15),
+#             ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedJetIndices'),
+#             ssh.absEta('genP4',100, 0.,       5, 'UnmatchedJetIndices'),
+#             ssh.multiplicity('UnmatchedGenIndices', max=15),
+#             ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedGenIndices'),
+#             ssh.absEta('genP4',100, 0.,       5, 'UnmatchedGenIndices'),
             ]
 #         isoVar = "%sRelativeIso%s"%lepton
 #         lepInd = 'mu_staco_Indices'
@@ -97,12 +97,21 @@ class acceptanceLook(supy.analysis) :
                         '["/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000001.root.1"'
                         ',"/tmp/gerbaudo/wA_noslep_WH_2Lep_11/NTUP_SUSY.01176858._000002.root.1"]',
                         xs = 1.140) #pb # 1.1402753294*0.30636*0.3348500000
+        exampleDict.add('WH_Htautau_had',
+                        '["/afs/cern.ch/user/g/gerbaudo/work/public/wh/checkFilterEff/test1.NTHUP_TRUTH.root"]',
+                        xs=1.140)
+        exampleDict.add('WH_Htautau_noHad',
+                        '["/afs/cern.ch/user/g/gerbaudo/work/public/wh/checkFilterEff/test2.NTHUP_TRUTH.root"]',
+                        xs=1.140)
         return [exampleDict]
 
     def listOfSamples(self,config) :
         test = False #True
         nEventsMax= 4 if test else None
-        return (supy.samples.specify(names='WH_2Lep_11', color = r.kViolet, nEventsMax=nEventsMax)
+        kViolet, kRed = 880, 632 # see Rtypes.h or import ROOT
+        return (#supy.samples.specify(names='WH_2Lep_11', color = kViolet, nEventsMax=nEventsMax)
+                supy.samples.specify(names='WH_Htautau_had', color = kViolet, nEventsMax=nEventsMax)
+                + supy.samples.specify(names='WH_Htautau_noHad', color = kRed, nEventsMax=nEventsMax)
                 )
 
     def conclude(self,pars) :
