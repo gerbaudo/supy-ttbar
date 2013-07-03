@@ -1,7 +1,7 @@
 from supy.defaults import *
 
 def mainTree() :
-    return ("/","susy")
+    return ("/","truth")
 
 def leavesToBlackList() :
     #return ['L1triggered', 'triggered', 'DCSBits']
