@@ -1,5 +1,7 @@
 from supy.defaults import *
 
+def experiment() :
+    return 'atlas'
 def mainTree() :
     return ("/","truth")
 
