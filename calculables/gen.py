@@ -463,3 +463,52 @@ class UnmatchedGenIndices(wrappedChain.calculable) :
             if not match : unmatched.append(ig)
         self.value = unmatched
 #___________________________________________________________
+class SignalLeptonIndices(wrappedChain.calculable) :
+    "Indices of the signal leptons, coming from either W or H from WH"
+    @property
+    def name(self) : return 'SignalLeptonIndices'.join(self.fixes)
+    def moreName(self) :
+        return 'SignalLeptonIndices'
+    def __init__(self, collection=defaultColl, maxEta=None, minPt=None) :
+        self.fixes = collection
+        self.stash(['pdgId', 'eta', 'pt', 'child_index',
+                    'higgsChildrenIndices', 'wChildrenIndices',
+                    'wDecayType', 'higgsDecayType',
+                    'HwwW0childrenIndices', 'HwwW1childrenIndices',
+                    'HwwW0decayType', 'HwwW1decayType'])
+        self.maxEta = maxEta
+        self.minPt  = minPt
+        self.moreName = "; ".join(filter(lambda x:x,
+                                         ["H->WW or H->tautau,",
+                                          "pt>%.1f" %minPt if minPt is not None else '',
+                                          "|eta|<%.2f"%maxEta if maxEta is not None else '',
+                                          ])
+                                  )
+    def update(self, _) :
+        pdgs       = self.source[self.pdgId]
+        etas       = self.source[self.eta]
+        pts        = self.source[self.pt]
+        children   = self.source[self.child_index]
+        wChildrenI = self.source[self.wChildrenIndices]
+        hChildrenI = self.source[self.higgsChildrenIndices]
+        hDecay     = self.source[self.higgsDecayType]
+        maxEta, minPt = self.maxEta, self.minPt
+        elOrMu = frozenset([11, 13])
+        def isLep(pdg) : return abs(pdg) in elOrMu
+        lIndices = filter(lambda i: (isLep(pdgs[i])
+                                     and (maxEta is None or abs(etas[i])<maxEta)
+                                     and (minPt  is None or pts[i]>minPt)),
+                          wChildrenI)
+        hWw, hTauTau = 0, 2 # see higgsDecayType
+        etci, ewci = extractTauchildrenIndices, extractWchildrenIndices
+        hGcIndices = [] # grandchildren
+        hGcIndices += [i for c in hChildrenI
+                       for i in ewci(c, pdgs, children)] if hDecay is hWw else []
+        hGcIndices += [i for c in hChildrenI
+                       for i in etci(c, pdgs, children)] if hDecay is hTauTau else []
+        lIndices += filter(lambda i: (isLep(pdgs[i])
+                                      and (maxEta is None or abs(etas[i])<maxEta)
+                                      and (minPt  is None or pts[i]>minPt)),
+                           hGcIndices)
+        self.value = lIndices
+#___________________________________________________________
