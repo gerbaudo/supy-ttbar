@@ -338,14 +338,12 @@ class HtautauTauIndices(wrappedChain.calculable) :
         pdgs             = self.source[self.pdgId]
         hChildrenIndices = self.source[self.higgsChildrenIndices]
         tauPgds          = [-15, +15]
-        print 'higgsChildrenIndices: ',self.source[self.higgsChildrenIndices]
         self.value = [i for i in hChildrenIndices if pdgs[i] in tauPgds]
-        print 'HtautauTauIndices: ',self.value
 #___________________________________________________________
 class tausDecayType(wrappedChain.calculable) :
     "determine the decay type for given taus"
     @property
-    def name(self) : return 'tauDecayType'.join(self.fixes)
+    def name(self) : return 'tausDecayType'.join(self.fixes)
     def __init__(self, collection=defaultColl) :
         self.fixes = collection
         self.stash(['pdgId','child_index','tauIndices'])
@@ -355,12 +353,9 @@ class tausDecayType(wrappedChain.calculable) :
         tauIndices   = self.source[self.tauIndices]
         tauPgds      = [-15, +15]
         assert all([pdgs[t] in tauPgds for t in tauIndices]),"not taus : %s"%str([pdgs[t] for t in tauIndices])
-        print 'tauIndices: ',tauIndices
         tausChildren = [extractTauchildrenIndices(tI, pdgs, children) for tI in tauIndices]
-        print 'tausChildren: ',tausChildren
-        pdgsChildren = [pdgs[i] for tc in tausChildren for i in tc]
-        print 'pdgsChildren: ',pdgsChildren
-        self.value = [extractWdecayType(pdgs) for pdgs in pdgsChildren]
+        pdgsChildren = [[pdgs[i]  for i in tc] for tc in tausChildren]
+        self.value = [extractTaudecayType(pdgs) for pdgs in pdgsChildren]
 #___________________________________________________________
 class HwwWchildrenIndices(wrappedChain.calculable) :
     "Indices of the children of the W from H->WW"
