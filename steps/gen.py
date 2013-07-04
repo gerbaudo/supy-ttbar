@@ -183,3 +183,15 @@ class deltaR(analysisStep) :
         p0, p1 = val[indices[0]], val[indices[1]]
         self.book.fill(r.Math.VectorUtil.DeltaR(p0, p1),
                        self.moreName, self.N, self.xmin, self.xmax, title=self.title)
+#___________________________________________________________
+class tauDecay(particleDecay) :
+    def __init__(self, indices='', index=None, var='mc_tauDecayType', title=';W Decay;events / bin') :
+        super(wDecay, self).__init__(var, title)
+    def makeLabels(self, eventVars) :
+        self.decays = { # see gen.tauDecayType
+            0  : 'l#nu',
+            1  : "q#bar{q}",
+            -1 : 'unknown',
+            }
+        self.labels = sorted(list(set(self.decays.values())))
+        self.nBins  = len(self.labels)
