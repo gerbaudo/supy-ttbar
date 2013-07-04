@@ -275,17 +275,27 @@ def extractWdecayType(pdgChildren=[]):
     lv, qqbar, unknown = 0, 1, -1
     if (frozenset([-el, +ve]).issubset(pdgs) or  frozenset([+el, -ve]).issubset(pdgs) or
         frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
-        frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs) ) :
+        frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs)) :
         return lv
     elif (frozenset([-u, +d]).issubset(pdgs) or  frozenset([+u, -d]).issubset(pdgs) or
           frozenset([-u, +s]).issubset(pdgs) or  frozenset([+u, -s]).issubset(pdgs) or
           frozenset([-u, +b]).issubset(pdgs) or  frozenset([+u, -b]).issubset(pdgs) or
           frozenset([-c, +d]).issubset(pdgs) or  frozenset([+c, -d]).issubset(pdgs) or
           frozenset([-c, +s]).issubset(pdgs) or  frozenset([+c, -s]).issubset(pdgs) or
-          frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs) ) :
+          frozenset([-c, +b]).issubset(pdgs) or  frozenset([+c, -b]).issubset(pdgs)) :
         return qqbar
     else :
         return unknown
+#___________________________________________________________
+def extractTaudecayType(pdgChildren=[]):
+    pdgs = frozenset(pdgChildren)
+    el,ve, mu, vm, ta, vt = 11, 12, 13, 14, 15, 16
+    leptonic, hadronic, unknown = 0, 1, -1
+    if (frozenset([-el, +ve]).issubset(pdgs) or  frozenset([+el, -ve]).issubset(pdgs) or
+        frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
+        frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs)) :
+        return leptonic
+    else : return hadronic
 #___________________________________________________________
 class wDecayType(wrappedChain.calculable) :
     @property
