@@ -239,9 +239,9 @@ class wIndices(wrappedChain.calculable) :
                              range(pdg.size()) )
 #___________________________________________________________
 def extractXchildrenIndices(xPdgs=[], xIndex=None, pdgs=[], childrenIndices=[[]]) :
-   """look for the children's indices of particle X; sometimes there
-   are intermediate Xs...need to follow the thread"""
-   xPdgs     = frozenset(xPdgs)
+    """look for the children's indices of particle X; sometimes there
+    are intermediate Xs...need to follow the thread"""
+    xPdgs     = frozenset(xPdgs)
     xI        = xIndex
     children  = childrenIndices
     childrenX = children[xI]
@@ -251,7 +251,7 @@ def extractXchildrenIndices(xPdgs=[], xIndex=None, pdgs=[], childrenIndices=[[]]
     return childrenX
 def extractWchildrenIndices(wIndex, pdgs, childrenIndices) :
     return extractXchildrenIndices(xPdgs=[+24, -24], xIndex=wIndex, pdgs=pdgs, childrenIndices=childrenIndices)
-def extractTauchildrenIndices(tauIndex=None, pdgs, childrenIndices) :
+def extractTauchildrenIndices(tauIndex, pdgs, childrenIndices) :
     return extractXchildrenIndices(xPdgs=[+15, -15], xIndex=tauIndex, pdgs=pdgs, childrenIndices=childrenIndices)
 #___________________________________________________________
 class wChildrenIndices(wrappedChain.calculable) :
@@ -295,7 +295,7 @@ def extractTaudecayType(pdgChildren=[]):
         frozenset([-mu, +vm]).issubset(pdgs) or  frozenset([+mu, -vm]).issubset(pdgs) or
         frozenset([-ta, +vt]).issubset(pdgs) or  frozenset([+ta, -vt]).issubset(pdgs)) :
         return leptonic
-    else : return hadronic
+    else : return hadronic # we could try to distinguish b/w had and unknown...not now
 #___________________________________________________________
 class wDecayType(wrappedChain.calculable) :
     @property
