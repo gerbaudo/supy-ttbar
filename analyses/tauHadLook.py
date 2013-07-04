@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 
+# to be tested with Burt's workaround
+# import sys
+# sys.argv.append("-b")
+# import ROOT as r
+# r.gROOT.SetBatch(True)
+# sys.argv.pop()
+
 import supy
+#supy.setupROOT()
 import calculables,steps,samples
 
 MeV2GeV = 1.0e+3
@@ -35,14 +43,11 @@ class tauHadLook(supy.analysis) :
         hi, wi, wci = 'higgsIndices'.join(mcColl), 'wIndices'.join(mcColl), 'wChildrenIndices'.join(mcColl)
         stepsList = [
             supy.steps.printer.progressPrinter(),
-#             ssh.multiplicity("genP4", max=50),
-#             ssh.multiplicity('genJetIndices', max=15),
-#             ssh.multiplicity('recJetIndices', max=15),
-#             ssh.multiplicity(hi, max=5),
-#             ssh.multiplicity(wi, max=5),
-#             ssh.multiplicity(wi, max=5),
-#             ssh.multiplicity('wChildrenIndices'.join(mcColl), max=10),
             steps.gen.higgsDecay(),
+            steps.gen.wDecay(),
+            ssf.value('higgsIsTauTau'.join(mcColl), min=1),
+            steps.gen.particlePrinter(),
+            supy.steps.printer.printstuff(['tauDecayType'.join(mcColl)]),
             steps.gen.wDecay(),
             ssh.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
             ssh.absEta('genP4',100, 0.,       5, hi, xtitle='H_{truth}'),
@@ -53,19 +58,7 @@ class tauHadLook(supy.analysis) :
             ssh.pt    ('genP4',100, 0., 250*GeV, wci, 1, xtitle='q_{1,truth}'),
             ssh.absEta('genP4',100, 0.,       5, wci, 0, xtitle='q_{0,truth}'),
             ssh.absEta('genP4',100, 0.,       5, wci, 1, xtitle='q_{1,truth}'),
-#             steps.gen.deltaR(indices=wci),
-#             ssh.multiplicity('UnmatchedJetIndices', max=15),
-#             ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedJetIndices'),
-#             ssh.absEta('genP4',100, 0.,       5, 'UnmatchedJetIndices'),
-#             ssh.multiplicity('UnmatchedGenIndices', max=15),
-#             ssh.pt    ('genP4',100, 0., 250*GeV, 'UnmatchedGenIndices'),
-#             ssh.absEta('genP4',100, 0.,       5, 'UnmatchedGenIndices'),
             ]
-#         isoVar = "%sRelativeIso%s"%lepton
-#         lepInd = 'mu_staco_Indices'
-#         # stepsList += [supy.steps.printer.printstuff(["%sRelativeIso%s"%lepton])]
-#         stepsList+= [shv(isoVar, 50, 0.0, 1.0, indices = lepInd, index=0),]
-
         return stepsList
 
     def listOfCalculables(self,config) :
