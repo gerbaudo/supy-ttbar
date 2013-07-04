@@ -238,16 +238,21 @@ class wIndices(wrappedChain.calculable) :
                              all([pdg[p] in charginos for p in parents[i]]),
                              range(pdg.size()) )
 #___________________________________________________________
-def extractWchildrenIndices(wIndex=None, pdgs=[], childrenIndices=[[]]) :
-    ws        = frozenset([+24, -24])
-    wI        = wIndex
+def extractXchildrenIndices(xPdgs=[], xIndex=None, pdgs=[], childrenIndices=[[]]) :
+   """look for the children's indices of particle X; sometimes there
+   are intermediate Xs...need to follow the thread"""
+   xPdgs     = frozenset(xPdgs)
+    xI        = xIndex
     children  = childrenIndices
-    childrenW = children[wI]
-    # sometimes there are intermediate Ws...need to follow the thread
-    while len(childrenW) and any([pdgs[c] in ws for c in childrenW]) :
-        wI = filter(lambda i: pdgs[i] in ws, childrenW)[0]
-        childrenW = [i for i in children[wI]]
-    return childrenW
+    childrenX = children[xI]
+    while len(childrenX) and any([pdgs[c] in xPdgs for c in childrenX]) :
+        xI = filter(lambda i: pdgs[i] in xPdgs, childrenX)[0]
+        childrenX = [i for i in children[xI]]
+    return childrenX
+def extractWchildrenIndices(wIndex, pdgs, childrenIndices) :
+    return extractXchildrenIndices(xPdgs=[+24, -24], xIndex=wIndex, pdgs=pdgs, childrenIndices=childrenIndices)
+def extractTauchildrenIndices(tauIndex=None, pdgs, childrenIndices) :
+    return extractXchildrenIndices(xPdgs=[+15, -15], xIndex=tauIndex, pdgs=pdgs, childrenIndices=childrenIndices)
 #___________________________________________________________
 class wChildrenIndices(wrappedChain.calculable) :
     @property
