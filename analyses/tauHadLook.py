@@ -45,10 +45,12 @@ class tauHadLook(supy.analysis) :
             supy.steps.printer.progressPrinter(),
             steps.gen.higgsDecay(),
             steps.gen.wDecay(),
+            ssh.multiplicity('SignalLeptonIndices'.join(mcColl)),
             ssf.value('higgsIsTauTau'.join(mcColl), min=1),
             steps.gen.wDecay(),
             steps.gen.tauDecay(0),
             steps.gen.tauDecay(1),
+            ssh.multiplicity('SignalLeptonIndices'.join(mcColl)),
             ssh.pt    ('genP4',100, 0., 250*GeV, hi, xtitle='H_{truth}'),
             ssh.absEta('genP4',100, 0.,       5, hi, xtitle='H_{truth}'),
             ssh.pt    ('genP4',100, 0., 250*GeV, wi, xtitle='W_{truth}'),
@@ -69,6 +71,7 @@ class tauHadLook(supy.analysis) :
         wci = 'wChildrenIndices'.join(mcColl)
         listOfCalculables = supy.calculables.zeroArgs(supy.calculables)
         listOfCalculables += [calculables.gen.genIndices(mcColl, [+24,-24],'W')]
+        listOfCalculables += [calculables.gen.SignalLeptonIndices(mcColl, 2.7, 20*GeV)]
         listOfCalculables += [calculables.muon.Indices(obj['muon'], ptMin=ptMin),
                               calculables.genjet.genJetP4(),
                               calculables.genjet.genJetIndices(ptMin=jetPars['minPt'],
