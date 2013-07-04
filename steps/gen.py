@@ -131,15 +131,19 @@ class ttbarPrinter(analysisStep) :
         print
 #___________________________________________________________
 class particleDecay(analysisStep) :
-    def __init__(self, var='', title='') :
-        self.var = var
+    def __init__(self, var='', title='', index=None) :
+        self.var   = var
         self.title = title
+        self.index = index
     def makeLabels(self, eventVars) : print 'to be implemented in inheriting class'
     def uponAcceptance(self, eventVars) :
         if not hasattr(self, 'labels') : self.makeLabels(eventVars)
-        iBin = self.labels.index(self.decays[eventVars[self.var]])
-        self.book.fill(iBin, self.var, self.nBins, 0.0, self.nBins,
-                       title = self.title, xAxisLabels = self.labels)
+        val = eventVars[self.var] if self.index is None else eventVars[self.var][self.index]
+        name = self.var if self.index is None else self.var+"[%d]"%self.index
+        iBin = self.labels.index(self.decays[val]) # ensures we have the bin
+        self.book.fill(iBin, name,
+                       self.nBins, 0.0, self.nBins,
+                       title = self.title, xAxisLabels = self.labels)#see autobook magic
 #___________________________________________________________
 class higgsDecay(particleDecay) :
     def __init__(self, var='mc_higgsDecayType', title=';Higgs Decay;events / bin') :
