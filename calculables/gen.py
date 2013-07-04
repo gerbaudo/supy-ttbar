@@ -312,6 +312,41 @@ class wIsHadronic(wrappedChain.calculable) :
     def update(self, _) :
         self.value = self.source[self.wDecayType]==1
 #___________________________________________________________
+class HtautauTauIndices(wrappedChain.calculable) :
+    "Indices of the taus from H->tautau"
+    @property
+    def name(self) : return 'tauIndices'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId', 'higgsChildrenIndices'])
+    def update(self, _) :
+        pdgs             = self.source[self.pdgId]
+        hChildrenIndices = self.source[self.higgsChildrenIndices]
+        tauPgds          = [-15, +15]
+        print 'higgsChildrenIndices: ',self.source[self.higgsChildrenIndices]
+        self.value = [i for i in hChildrenIndices if pdgs[i] in tauPgds]
+        print 'HtautauTauIndices: ',self.value
+#___________________________________________________________
+class tausDecayType(wrappedChain.calculable) :
+    "determine the decay type for given taus"
+    @property
+    def name(self) : return 'tauDecayType'.join(self.fixes)
+    def __init__(self, collection=defaultColl) :
+        self.fixes = collection
+        self.stash(['pdgId','child_index','tauIndices'])
+    def update(self, _) :
+        children     = self.source[self.child_index]
+        pdgs         = self.source[self.pdgId]
+        tauIndices   = self.source[self.tauIndices]
+        tauPgds      = [-15, +15]
+        assert all([pdgs[t] in tauPgds for t in tauIndices]),"not taus : %s"%str([pdgs[t] for t in tauIndices])
+        print 'tauIndices: ',tauIndices
+        tausChildren = [extractTauchildrenIndices(tI, pdgs, children) for tI in tauIndices]
+        print 'tausChildren: ',tausChildren
+        pdgsChildren = [pdgs[i] for tc in tausChildren for i in tc]
+        print 'pdgsChildren: ',pdgsChildren
+        self.value = [extractWdecayType(pdgs) for pdgs in pdgsChildren]
+#___________________________________________________________
 class HwwWchildrenIndices(wrappedChain.calculable) :
     "Indices of the children of the W from H->WW"
     @property
