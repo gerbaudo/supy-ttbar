@@ -99,6 +99,11 @@ class tauHadLook(supy.analysis) :
         exampleDict.add('WH_Htautau_noHad',
                         '["/afs/cern.ch/user/g/gerbaudo/work/public/wh/checkFilterEff/test2.NTHUP_TRUTH.root"]',
                         xs=1.140)
+        basedir='/gdata/atlas/gerbaudo/wh/mc12_8TeV.177503.Herwigpp_UEEE3_CTEQ6L1_sM_wA_noslep_notauhad_WH_2Lep_3.merge.NTUP_SUSY.e2149_s1581_s1586_r3658_r3549_p1512'
+        basedir='/gdata/atlas/gerbaudo/wh/mc12_8TeV.177503.Herwigpp_UEEE3_CTEQ6L1_sM_wA_noslep_notauhad_WH_2Lep_3.evgen.NTUP_TRUTH'
+        exampleDict.add('WH_2Lep_3',
+                        'utils.fileListFromDisk(location = "%s/*.root*", isDirectory = False)'%basedir,
+                        xs=(2.1906288266*0.30636*0.3280600000)) #pb
         return [exampleDict]
 
     def listOfSamples(self,config) :
@@ -106,8 +111,9 @@ class tauHadLook(supy.analysis) :
         nEventsMax= 4 if test else None
         kViolet, kRed = 880, 632 # see Rtypes.h or import ROOT
         return (#supy.samples.specify(names='WH_2Lep_11', color = kViolet, nEventsMax=nEventsMax)
-                supy.samples.specify(names='WH_Htautau_had', color = kViolet, nEventsMax=nEventsMax)
-                + supy.samples.specify(names='WH_Htautau_noHad', color = kRed, nEventsMax=nEventsMax)
+                #supy.samples.specify(names='WH_Htautau_had', color = kViolet, nEventsMax=nEventsMax)
+                #+ supy.samples.specify(names='WH_Htautau_noHad', color = kRed, nEventsMax=nEventsMax)
+                supy.samples.specify(names='WH_2Lep_3', color = kViolet, nEventsMax=nEventsMax)
                 )
 
     def conclude(self,pars) :
